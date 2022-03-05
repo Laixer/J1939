@@ -18,7 +18,7 @@ impl Id {
         self.0
     }
 
-    /// J1939 frame priority
+    /// Frame priority
     ///
     /// The priority ranges from 0 to 7, where 0 is the highest priority and 7 the lowest priority.
     ///
@@ -29,14 +29,17 @@ impl Id {
         (self.0 >> 26).try_into().unwrap()
     }
 
+    /// Extended data page
     pub fn edp(&self) -> u8 {
         ((self.0 >> 25) & 0x1).try_into().unwrap()
     }
 
+    // Data page
     pub fn dp(&self) -> u8 {
         ((self.0 >> 24) & 0x1).try_into().unwrap()
     }
 
+    /// Parameter group number
     pub fn pgn(&self) -> u16 {
         match self.pf() {
             PDUFormat::PDU1(_) => (self.0 >> 8) & 0xff00,
@@ -46,6 +49,7 @@ impl Id {
         .unwrap()
     }
 
+    /// PDU Format
     pub fn pf(&self) -> PDUFormat {
         let format: u8 = ((self.0 >> 16) & 0xff).try_into().unwrap();
         if format < 240 {
@@ -55,6 +59,7 @@ impl Id {
         }
     }
 
+    /// Test if the frame is a broadcast frame
     pub fn is_broadcast(&self) -> bool {
         match self.pf() {
             PDUFormat::PDU2(_) => true,
@@ -62,10 +67,12 @@ impl Id {
         }
     }
 
+    /// PDU Specific
     pub fn ps(&self) -> u8 {
         ((self.0 >> 8) & 0xff).try_into().unwrap()
     }
 
+    /// Device source address
     pub fn sa(&self) -> u8 {
         (self.0 & 0xff).try_into().unwrap()
     }
@@ -74,11 +81,21 @@ impl Id {
 struct IdBuilder {
     priority: u8,
     pgn: u16,
+    sa: u8,
 }
 
 impl IdBuilder {
-    pub fn new(pgn: u16) -> Self {
-        Self { priority: 6, pgn }
+    pub fn from_pgn(pgn: u16) -> Self {
+        Self {
+            priority: 6,
+            pgn,
+            sa: 0,
+        }
+    }
+
+    pub fn priority(mut self, priority: u8) -> IdBuilder {
+        self.priority = priority.min(7);
+        self
     }
 
     pub fn build(self) -> Id {
@@ -154,7 +171,7 @@ mod tests {
 
     #[test]
     fn id_build_1() {
-        let id = IdBuilder::new(65247).build();
+        let id = IdBuilder::from_pgn(65247).build();
 
         assert_eq!(id, Id::new(0x18FEDF00));
     }

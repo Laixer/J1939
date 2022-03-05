@@ -29,11 +29,6 @@ impl Id {
         (self.0 >> 26).try_into().unwrap()
     }
 
-    /// Extended data page
-    pub fn edp(&self) -> u8 {
-        ((self.0 >> 25) & 0x1).try_into().unwrap()
-    }
-
     // Data page
     pub fn dp(&self) -> u8 {
         ((self.0 >> 24) & 0x1).try_into().unwrap()
@@ -78,6 +73,12 @@ impl Id {
     }
 }
 
+impl core::fmt::Display for Id {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "0x{:X?}", self.as_raw())
+    }
+}
+
 struct IdBuilder {
     priority: u8,
     pgn: u16,
@@ -115,7 +116,6 @@ mod tests {
 
         assert_eq!(id.as_raw(), 0x18EAFF00);
         assert_eq!(id.priority(), 6);
-        assert_eq!(id.edp(), 0);
         assert_eq!(id.dp(), 0);
         assert_eq!(id.pgn(), 59904);
         assert_eq!(id.pf(), PDUFormat::PDU1(234));
@@ -130,7 +130,6 @@ mod tests {
 
         assert_eq!(id.as_raw(), 0xCFE6CEE);
         assert_eq!(id.priority(), 3);
-        assert_eq!(id.edp(), 0);
         assert_eq!(id.dp(), 0);
         assert_eq!(id.pgn(), 65132);
         assert_eq!(id.pf(), PDUFormat::PDU2(254));
@@ -141,26 +140,10 @@ mod tests {
 
     #[test]
     fn id_decode_3() {
-        let id = Id::new(0xEFE6CEE);
-
-        assert_eq!(id.as_raw(), 0xEFE6CEE);
-        assert_eq!(id.priority(), 3);
-        assert_eq!(id.edp(), 1);
-        assert_eq!(id.dp(), 0);
-        assert_eq!(id.pgn(), 65132);
-        assert_eq!(id.pf(), PDUFormat::PDU2(254));
-        assert_eq!(id.is_broadcast(), true);
-        assert_eq!(id.ps(), 108);
-        assert_eq!(id.sa(), 238);
-    }
-
-    #[test]
-    fn id_decode_4() {
         let id = Id::new(0xDFE6CEE);
 
         assert_eq!(id.as_raw(), 0xDFE6CEE);
         assert_eq!(id.priority(), 3);
-        assert_eq!(id.edp(), 0);
         assert_eq!(id.dp(), 1);
         assert_eq!(id.pgn(), 65132);
         assert_eq!(id.pf(), PDUFormat::PDU2(254));

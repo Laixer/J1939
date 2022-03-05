@@ -6,6 +6,7 @@ pub enum PDUFormat {
     PDU2(u8),
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Id(u32);
 
 impl Id {
@@ -17,6 +18,13 @@ impl Id {
         self.0
     }
 
+    /// J1939 frame priority
+    ///
+    /// The priority ranges from 0 to 7, where 0 is the highest priority and 7 the lowest priority.
+    ///
+    /// Default priority for informational, proprietary, request and acknowledgement frames is 6.
+    /// Default priority for control frames (e.g., speeding up or slowing down the vehicle) is 3.
+    #[inline]
     pub fn priority(&self) -> u8 {
         (self.0 >> 26).try_into().unwrap()
     }
@@ -63,13 +71,30 @@ impl Id {
     }
 }
 
+struct IdBuilder {
+    priority: u8,
+    pgn: u16,
+}
+
+impl IdBuilder {
+    pub fn new(pgn: u16) -> Self {
+        Self { priority: 6, pgn }
+    }
+
+    pub fn build(self) -> Id {
+        let id = (self.priority as u32) << 26 | (self.pgn as u32) << 8;
+
+        Id::new(id)
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::PDUFormat;
+    use crate::{Id, IdBuilder, PDUFormat};
 
     #[test]
     fn id_decode_1() {
-        let id = crate::Id::new(0x18EAFF00);
+        let id = Id::new(0x18EAFF00);
 
         assert_eq!(id.as_raw(), 0x18EAFF00);
         assert_eq!(id.priority(), 6);
@@ -84,7 +109,7 @@ mod tests {
 
     #[test]
     fn id_decode_2() {
-        let id = crate::Id::new(0xCFE6CEE);
+        let id = Id::new(0xCFE6CEE);
 
         assert_eq!(id.as_raw(), 0xCFE6CEE);
         assert_eq!(id.priority(), 3);
@@ -99,7 +124,7 @@ mod tests {
 
     #[test]
     fn id_decode_3() {
-        let id = crate::Id::new(0xEFE6CEE);
+        let id = Id::new(0xEFE6CEE);
 
         assert_eq!(id.as_raw(), 0xEFE6CEE);
         assert_eq!(id.priority(), 3);
@@ -114,7 +139,7 @@ mod tests {
 
     #[test]
     fn id_decode_4() {
-        let id = crate::Id::new(0xDFE6CEE);
+        let id = Id::new(0xDFE6CEE);
 
         assert_eq!(id.as_raw(), 0xDFE6CEE);
         assert_eq!(id.priority(), 3);
@@ -125,5 +150,12 @@ mod tests {
         assert_eq!(id.is_broadcast(), true);
         assert_eq!(id.ps(), 108);
         assert_eq!(id.sa(), 238);
+    }
+
+    #[test]
+    fn id_build_1() {
+        let id = IdBuilder::new(65247).build();
+
+        assert_eq!(id, Id::new(0x18FEDF00));
     }
 }

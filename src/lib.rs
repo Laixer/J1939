@@ -62,6 +62,26 @@ impl Id {
         }
     }
 
+    /// Frame destination address
+    ///
+    /// The destination address is only availale on PDU1 frames.
+    pub fn destination_address(&self) -> Option<u8> {
+        match self.pf() {
+            PDUFormat::PDU1(_) => Some(self.ps()),
+            _ => None,
+        }
+    }
+
+    /// Frame group extension
+    ///
+    /// The group extension is only availale on PDU2 frames.
+    pub fn group_extension(&self) -> Option<u8> {
+        match self.pf() {
+            PDUFormat::PDU2(_) => Some(self.ps()),
+            _ => None,
+        }
+    }
+
     /// PDU Specific
     pub fn ps(&self) -> u8 {
         ((self.0 >> 8) & 0xff).try_into().unwrap()
@@ -128,6 +148,8 @@ mod tests {
         assert_eq!(id.pf(), PDUFormat::PDU1(234));
         assert_eq!(id.is_broadcast(), false);
         assert_eq!(id.ps(), 255);
+        assert_eq!(id.destination_address(), Some(255));
+        assert_eq!(id.group_extension(), None);
         assert_eq!(id.sa(), 0);
     }
 
@@ -142,6 +164,8 @@ mod tests {
         assert_eq!(id.pf(), PDUFormat::PDU2(254));
         assert_eq!(id.is_broadcast(), true);
         assert_eq!(id.ps(), 108);
+        assert_eq!(id.destination_address(), None);
+        assert_eq!(id.group_extension(), Some(108));
         assert_eq!(id.sa(), 238);
     }
 
@@ -156,6 +180,8 @@ mod tests {
         assert_eq!(id.pf(), PDUFormat::PDU2(254));
         assert_eq!(id.is_broadcast(), true);
         assert_eq!(id.ps(), 108);
+        assert_eq!(id.destination_address(), None);
+        assert_eq!(id.group_extension(), Some(108));
         assert_eq!(id.sa(), 238);
     }
 

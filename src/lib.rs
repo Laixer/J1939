@@ -79,7 +79,7 @@ impl core::fmt::Display for Id {
     }
 }
 
-struct IdBuilder {
+pub struct IdBuilder {
     priority: u8,
     pgn: u16,
     sa: u8,
@@ -94,13 +94,20 @@ impl IdBuilder {
         }
     }
 
-    pub fn priority(mut self, priority: u8) -> IdBuilder {
+    /// Set the priority
+    pub fn priority(mut self, priority: u8) -> Self {
         self.priority = priority.min(7);
         self
     }
 
+    /// Set the sender address
+    pub fn sa(mut self, address: u8) -> Self {
+        self.sa = address;
+        self
+    }
+
     pub fn build(self) -> Id {
-        let id = (self.priority as u32) << 26 | (self.pgn as u32) << 8;
+        let id = (self.priority as u32) << 26 | (self.pgn as u32) << 8 | self.sa as u32;
 
         Id::new(id)
     }
@@ -157,5 +164,12 @@ mod tests {
         let id = IdBuilder::from_pgn(65247).build();
 
         assert_eq!(id, Id::new(0x18FEDF00));
+    }
+
+    #[test]
+    fn id_build_2() {
+        let id = IdBuilder::from_pgn(65271).sa(234).build();
+
+        assert_eq!(id, Id::new(0x18FEF7EA));
     }
 }

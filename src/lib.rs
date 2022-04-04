@@ -165,6 +165,52 @@ impl IdBuilder {
     }
 }
 
+pub struct Frame {
+    pub id: Id,
+    pub pdu: [u8; 8],
+}
+
+impl Frame {
+    pub fn new(id: Id, pdu: [u8; 8]) -> Self {
+        Self { id, pdu }
+    }
+}
+
+impl core::fmt::Display for Frame {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{}    {:X?}", self.id, self.pdu)
+    }
+}
+
+pub struct FrameBuilder {
+    id: Id,
+    pdu: [u8; 8],
+}
+
+impl Default for FrameBuilder {
+    fn default() -> Self {
+        Self {
+            id: Id::new(0),
+            pdu: [0; 8],
+        }
+    }
+}
+
+impl FrameBuilder {
+    pub fn id(mut self, id: Id) -> Self {
+        self.id = id;
+        self
+    }
+
+    pub fn pdu_mut_ref(&mut self) -> &mut [u8] {
+        &mut self.pdu[..]
+    }
+
+    pub fn build(self) -> Frame {
+        Frame::new(self.id, self.pdu)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::{Id, IdBuilder, PDUFormat};

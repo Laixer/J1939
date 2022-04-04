@@ -9,11 +9,14 @@ pub enum PDUFormat {
 #[derive(Debug, PartialEq)]
 pub struct Id(u32);
 
+/// Frame ID
 impl Id {
+    /// Construct new Frame ID.
     pub fn new(id: u32) -> Self {
         Self(id)
     }
 
+    /// Return ID as raw integer.
     pub fn as_raw(&self) -> u32 {
         self.0
     }
@@ -103,6 +106,7 @@ pub struct IdBuilder {
     priority: u8,
     pgn: u16,
     sa: u8,
+    da: u8,
 }
 
 impl IdBuilder {
@@ -111,6 +115,7 @@ impl IdBuilder {
             priority: 6,
             pgn,
             sa: 0,
+            da: 0,
         }
     }
 
@@ -126,8 +131,18 @@ impl IdBuilder {
         self
     }
 
+    /// Set the destination address
+    pub fn da(mut self, address: u8) -> Self {
+        self.da = address;
+        self
+    }
+
     pub fn build(self) -> Id {
-        let id = (self.priority as u32) << 26 | (self.pgn as u32) << 8 | self.sa as u32;
+        let mut id = (self.priority as u32) << 26 | (self.pgn as u32) << 8 | self.sa as u32;
+
+        if let PDUFormat::PDU1(_) = Id::new(id).pf() {
+            id |= (self.da as u32) << 8;
+        }
 
         Id::new(id)
     }
@@ -187,13 +202,24 @@ mod tests {
 
     #[test]
     fn id_build_1() {
-        let id = IdBuilder::from_pgn(65247).build();
+        let id = IdBuilder::from_pgn(51712).priority(3).sa(139).build();
 
-        assert_eq!(id, Id::new(0x18FEDF00));
+        assert_eq!(id, Id::new(0xCCA008B));
     }
 
     #[test]
     fn id_build_2() {
+        let id = IdBuilder::from_pgn(51712)
+            .priority(3)
+            .da(0x34)
+            .sa(139)
+            .build();
+
+        assert_eq!(id, Id::new(0xCCA348B));
+    }
+
+    #[test]
+    fn id_build_3() {
         let id = IdBuilder::from_pgn(65271).sa(234).build();
 
         assert_eq!(id, Id::new(0x18FEF7EA));

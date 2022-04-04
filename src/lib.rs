@@ -98,7 +98,24 @@ impl Id {
 
 impl core::fmt::Display for Id {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "0x{:X?}", self.as_raw())
+        if let Some(da) = self.destination_address() {
+            write!(
+                f,
+                "[0x{:X?}] Prio: {} PGN: {} DA: {}",
+                self.as_raw(),
+                self.priority(),
+                self.pgn(),
+                da
+            )
+        } else {
+            write!(
+                f,
+                "[0x{:X?}] Pri: {} PGN: {}",
+                self.as_raw(),
+                self.priority(),
+                self.pgn()
+            )
+        }
     }
 }
 

@@ -165,14 +165,28 @@ impl IdBuilder {
     }
 }
 
+/// Data frame.
 pub struct Frame {
-    pub id: Id,
-    pub pdu: [u8; 8],
+    /// Frame ID.
+    id: Id,
+    /// PDU.
+    pdu: [u8; 8],
 }
 
 impl Frame {
+    /// Construct new frame.
     pub fn new(id: Id, pdu: [u8; 8]) -> Self {
         Self { id, pdu }
+    }
+
+    /// Get frame ID.
+    pub fn id(&self) -> &Id {
+        &self.id
+    }
+
+    /// Get PDU reference.
+    pub fn pdu(&self) -> &[u8] {
+        &self.pdu[..]
     }
 }
 

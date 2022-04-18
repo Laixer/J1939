@@ -297,6 +297,17 @@ mod tests {
 
     #[test]
     fn id_build_3() {
+        let id = IdBuilder::from_pgn(61444)
+            .priority(3)
+            .da(0)
+            .sa(12)
+            .build();
+
+        assert_eq!(id, Id::new(0xCF0040C));
+    }
+
+    #[test]
+    fn id_build_4() {
         let id = IdBuilder::from_pgn(65271).sa(234).build();
 
         assert_eq!(id, Id::new(0x18FEF7EA));

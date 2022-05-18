@@ -1,5 +1,7 @@
 #![no_std]
 
+pub mod decode;
+
 #[derive(Debug, PartialEq)]
 pub enum PDUFormat {
     PDU1(u8),

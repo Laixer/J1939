@@ -207,14 +207,26 @@ impl Default for FrameBuilder {
     fn default() -> Self {
         Self {
             id: Id::new(0),
-            pdu: [0; 8],
+            pdu: [0xff; 8],
         }
     }
 }
 
 impl FrameBuilder {
+    /// Construct new frame builder.
+    pub fn new(id: Id) -> Self {
+        Self::default().id(id)
+    }
+
+    /// Set the frame ID.
     pub fn id(mut self, id: Id) -> Self {
         self.id = id;
+        self
+    }
+
+    /// Copy PDU data from slice.
+    pub fn from_slice(mut self, src: &[u8]) -> Self {
+        self.pdu[..src.len()].copy_from_slice(src);
         self
     }
 
@@ -222,6 +234,7 @@ impl FrameBuilder {
         &mut self.pdu[..]
     }
 
+    /// Construct frame.
     pub fn build(self) -> Frame {
         Frame::new(self.id, self.pdu)
     }

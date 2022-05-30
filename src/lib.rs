@@ -8,7 +8,7 @@ pub enum PDUFormat {
     PDU2(u8),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Id(u32);
 
 /// Frame ID
@@ -61,10 +61,7 @@ impl Id {
 
     /// Test if the frame is a broadcast frame
     pub fn is_broadcast(&self) -> bool {
-        match self.pf() {
-            PDUFormat::PDU2(_) => true,
-            _ => false,
-        }
+        matches!(self.pf(), PDUFormat::PDU2(_))
     }
 
     /// Frame destination address
@@ -168,6 +165,7 @@ impl IdBuilder {
 }
 
 /// Data frame.
+#[derive(Clone, Copy, Debug)]
 pub struct Frame {
     /// Frame ID.
     id: Id,
@@ -312,11 +310,7 @@ mod tests {
 
     #[test]
     fn id_build_3() {
-        let id = IdBuilder::from_pgn(61444)
-            .priority(3)
-            .da(0)
-            .sa(12)
-            .build();
+        let id = IdBuilder::from_pgn(61444).priority(3).da(0).sa(12).build();
 
         assert_eq!(id, Id::new(0xCF0040C));
     }

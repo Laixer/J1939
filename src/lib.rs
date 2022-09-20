@@ -2,6 +2,7 @@
 #![deny(warnings)]
 #![no_std]
 
+// TODO: Make this a feature
 pub mod decode;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -16,12 +17,12 @@ pub struct Id(u32);
 /// Frame ID
 impl Id {
     /// Construct new Frame ID.
-    pub fn new(id: u32) -> Self {
+    pub const fn new(id: u32) -> Self {
         Self(id)
     }
 
     /// Return ID as raw integer.
-    pub fn as_raw(&self) -> u32 {
+    pub const fn as_raw(&self) -> u32 {
         self.0
     }
 
@@ -199,6 +200,12 @@ impl core::fmt::Display for Frame {
     }
 }
 
+impl AsRef<[u8]> for Frame {
+    fn as_ref(&self) -> &[u8] {
+        &self.pdu
+    }
+}
+
 pub struct FrameBuilder {
     /// Frame ID.
     id: Id,
@@ -233,6 +240,8 @@ impl FrameBuilder {
         self
     }
 
+    // TODO: Has been replaced by as_mut
+    #[deprecated]
     pub fn pdu_mut_ref(&mut self) -> &mut [u8] {
         &mut self.pdu[..]
     }
@@ -240,6 +249,12 @@ impl FrameBuilder {
     /// Construct frame.
     pub fn build(self) -> Frame {
         Frame::new(self.id, self.pdu)
+    }
+}
+
+impl AsMut<[u8]> for FrameBuilder {
+    fn as_mut(&mut self) -> &mut [u8] {
+        &mut self.pdu
     }
 }
 

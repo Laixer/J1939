@@ -4,13 +4,13 @@
 
 pub mod decode;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum PDUFormat {
     PDU1(u8),
     PDU2(u8),
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Id(u32);
 
 /// Frame ID
@@ -128,6 +128,7 @@ pub struct IdBuilder {
 }
 
 impl IdBuilder {
+    /// Construct ID builder from PGN.
     pub fn from_pgn(pgn: u16) -> Self {
         Self {
             priority: 6,
@@ -199,7 +200,9 @@ impl core::fmt::Display for Frame {
 }
 
 pub struct FrameBuilder {
+    /// Frame ID.
     id: Id,
+    /// PDU.
     pdu: [u8; 8],
 }
 

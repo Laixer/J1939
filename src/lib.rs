@@ -1,3 +1,5 @@
+#![deny(unsafe_code)]
+#![deny(warnings)]
 #![no_std]
 
 pub mod decode;
@@ -109,7 +111,7 @@ impl core::fmt::Display for Id {
         } else {
             write!(
                 f,
-                "[0x{:X?}] Pri: {} PGN: {}",
+                "[0x{:X?}] Prio: {} PGN: {}",
                 self.as_raw(),
                 self.priority(),
                 self.pgn()

@@ -238,26 +238,12 @@ impl FrameBuilder {
     }
 
     /// Copy PDU data from slice.
-    /// 
+    ///
     /// A runtime error will occur if the source slice is
     /// larger than the PDU.
     pub fn copy_from_slice(mut self, src: &[u8]) -> Self {
         self.pdu[..src.len()].copy_from_slice(src);
         self
-    }
-
-    // TODO: Replaced by copy_from_slice
-    /// Copy PDU data from slice.
-    #[deprecated]
-    pub fn from_slice(mut self, src: &[u8]) -> Self {
-        self.pdu[..src.len()].copy_from_slice(src);
-        self
-    }
-
-    // TODO: Has been replaced by as_mut
-    #[deprecated]
-    pub fn pdu_mut_ref(&mut self) -> &mut [u8] {
-        &mut self.pdu[..]
     }
 
     /// Construct frame.

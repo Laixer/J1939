@@ -5,6 +5,9 @@
 // TODO: Make this a feature
 pub mod decode;
 
+#[cfg(feature = "can")]
+pub mod can;
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum PDUFormat {
     PDU1(u8),

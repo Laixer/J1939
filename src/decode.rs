@@ -40,7 +40,7 @@ pub fn spn157(value: &[u8; 2]) -> Option<u16> {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum EngineStarterMode {
     StartNotRequested,
     StarterActiveGearNotEngaged,
@@ -156,7 +156,7 @@ pub fn spn1483(value: u8) -> Option<u8> {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum EngineTorqueMode {
     NoRequest,
     AcceleratorPedal,

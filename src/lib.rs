@@ -275,6 +275,12 @@ impl FrameBuilder {
         self
     }
 
+    /// Set PDU length.
+    pub fn set_len(mut self, len: usize) -> Self {
+        self.pdu_length = len;
+        self
+    }
+
     /// Construct frame.
     pub fn build(self) -> Frame {
         Frame {
@@ -422,5 +428,23 @@ mod tests {
         assert_eq!(frame.pdu(), &[]);
         assert_eq!(frame.len(), 0);
         assert_eq!(frame.is_empty(), true);
+    }
+
+    #[test]
+    fn frame_build_4() {
+        let mut frame_builder = FrameBuilder::default().id(IdBuilder::from_pgn(51712).build());
+
+        frame_builder
+            .as_mut()
+            .copy_from_slice(&[0x8, 0x7, 0x6, 0x5, 0x4, 0x3, 0x2, 0x1]);
+
+        frame_builder = frame_builder.set_len(8);
+
+        let frame = frame_builder.build();
+
+        assert_eq!(frame.id(), &Id::new(0x18CA0000));
+        assert_eq!(frame.pdu(), &[0x8, 0x7, 0x6, 0x5, 0x4, 0x3, 0x2, 0x1]);
+        assert_eq!(frame.len(), 8);
+        assert_eq!(frame.is_empty(), false);
     }
 }

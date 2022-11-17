@@ -40,12 +40,12 @@ impl Id {
         (self.0 >> 26).try_into().unwrap()
     }
 
-    // Data page
+    /// Data page
     pub fn dp(&self) -> u8 {
         ((self.0 >> 24) & 0x1).try_into().unwrap()
     }
 
-    /// Parameter group number
+    /// Parameter Group Number
     pub fn pgn(&self) -> u16 {
         match self.pf() {
             PDUFormat::PDU1(_) => (self.0 >> 8) & 0xff00,
@@ -106,7 +106,7 @@ impl core::fmt::Display for Id {
         if let Some(da) = self.destination_address() {
             write!(
                 f,
-                "[0x{:X?}] Prio: {} PGN: {} DA: {}",
+                "[0x{:X?}] Prio: {} PGN: {} DA: 0x{:X?}",
                 self.as_raw(),
                 self.priority(),
                 self.pgn(),

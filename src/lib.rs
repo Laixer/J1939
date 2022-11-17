@@ -187,12 +187,18 @@ pub struct Frame {
     id: Id,
     /// PDU.
     pdu: [u8; 8],
+    /// PDU length.
+    pdu_length: usize,
 }
 
 impl Frame {
     /// Construct new frame.
     pub fn new(id: Id, pdu: [u8; 8]) -> Self {
-        Self { id, pdu }
+        Self {
+            id,
+            pdu,
+            pdu_length: 8,
+        }
     }
 
     /// Get frame ID.
@@ -202,7 +208,17 @@ impl Frame {
 
     /// Get PDU reference.
     pub fn pdu(&self) -> &[u8] {
-        &self.pdu[..]
+        &self.pdu[..self.pdu_length]
+    }
+
+    /// PDU data length.
+    pub fn len(&self) -> usize {
+        self.pdu_length
+    }
+
+    /// Check if PDU data is empty.
+    pub fn is_empty(&self) -> bool {
+        self.pdu_length == 0
     }
 }
 
@@ -214,7 +230,7 @@ impl core::fmt::Display for Frame {
 
 impl AsRef<[u8]> for Frame {
     fn as_ref(&self) -> &[u8] {
-        &self.pdu
+        &self.pdu[..self.pdu_length]
     }
 }
 
@@ -223,6 +239,8 @@ pub struct FrameBuilder {
     id: Id,
     /// PDU.
     pdu: [u8; 8],
+    /// PDU length.
+    pdu_length: usize,
 }
 
 impl Default for FrameBuilder {
@@ -230,6 +248,7 @@ impl Default for FrameBuilder {
         Self {
             id: Id::new(0),
             pdu: [0xff; 8],
+            pdu_length: 0,
         }
     }
 }
@@ -252,12 +271,17 @@ impl FrameBuilder {
     /// larger than the PDU.
     pub fn copy_from_slice(mut self, src: &[u8]) -> Self {
         self.pdu[..src.len()].copy_from_slice(src);
+        self.pdu_length = src.len();
         self
     }
 
     /// Construct frame.
     pub fn build(self) -> Frame {
-        Frame::new(self.id, self.pdu)
+        Frame {
+            id: self.id,
+            pdu: self.pdu,
+            pdu_length: self.pdu_length,
+        }
     }
 }
 
@@ -269,7 +293,7 @@ impl AsMut<[u8]> for FrameBuilder {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Id, IdBuilder, PDUFormat, PGN};
+    use crate::{FrameBuilder, Id, IdBuilder, PDUFormat, PGN};
 
     #[test]
     fn id_decode_1() {
@@ -354,5 +378,47 @@ mod tests {
         let id = IdBuilder::from_pgn(65271).sa(234).build();
 
         assert_eq!(id, Id::new(0x18FEF7EA));
+    }
+
+    #[test]
+    fn frame_build_1() {
+        let frame = FrameBuilder::new(
+            IdBuilder::from_pgn(PGN::RequestMessage.into())
+                .da(0x20)
+                .sa(0x10)
+                .build(),
+        )
+        .copy_from_slice(&[0x1, 0x2, 0x3])
+        .build();
+
+        assert_eq!(frame.id(), &Id::new(0x18EA2010));
+        assert_eq!(frame.pdu(), &[0x1, 0x2, 0x3]);
+        assert_eq!(frame.len(), 3);
+    }
+
+    #[test]
+    fn frame_build_2() {
+        let frame = FrameBuilder::new(
+            IdBuilder::from_pgn(PGN::AddressClaimed.into())
+                .priority(3)
+                .sa(0x10)
+                .build(),
+        )
+        .copy_from_slice(&[0xff; 8])
+        .build();
+
+        assert_eq!(frame.id(), &Id::new(0xCEE0010));
+        assert_eq!(frame.pdu(), &[0xff; 8]);
+        assert_eq!(frame.len(), 8);
+    }
+
+    #[test]
+    fn frame_build_3() {
+        let frame = FrameBuilder::new(IdBuilder::from_pgn(51712).build()).build();
+
+        assert_eq!(frame.id(), &Id::new(0x18CA0000));
+        assert_eq!(frame.pdu(), &[]);
+        assert_eq!(frame.len(), 0);
+        assert_eq!(frame.is_empty(), true);
     }
 }

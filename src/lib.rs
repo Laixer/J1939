@@ -394,6 +394,7 @@ mod tests {
         assert_eq!(frame.id(), &Id::new(0x18EA2010));
         assert_eq!(frame.pdu(), &[0x1, 0x2, 0x3]);
         assert_eq!(frame.len(), 3);
+        assert_eq!(frame.is_empty(), false);
     }
 
     #[test]
@@ -410,6 +411,7 @@ mod tests {
         assert_eq!(frame.id(), &Id::new(0xCEE0010));
         assert_eq!(frame.pdu(), &[0xff; 8]);
         assert_eq!(frame.len(), 8);
+        assert_eq!(frame.is_empty(), false);
     }
 
     #[test]

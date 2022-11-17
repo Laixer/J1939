@@ -5,6 +5,10 @@
 // TODO: Make this a feature
 pub mod decode;
 
+mod pgn;
+
+pub use pgn::*;
+
 #[cfg(feature = "can")]
 pub mod can;
 
@@ -125,9 +129,13 @@ impl core::fmt::Display for Id {
 }
 
 pub struct IdBuilder {
+    /// Message priority.
     priority: u8,
+    /// Parameter group number.
     pgn: u16,
+    /// Source address.
     sa: u8,
+    /// Destination address.
     da: u8,
 }
 
@@ -142,24 +150,25 @@ impl IdBuilder {
         }
     }
 
-    /// Set the priority
+    /// Set the priority.
     pub fn priority(mut self, priority: u8) -> Self {
         self.priority = priority.min(7);
         self
     }
 
-    /// Set the sender address
+    /// Set the sender address.
     pub fn sa(mut self, address: u8) -> Self {
         self.sa = address;
         self
     }
 
-    /// Set the destination address
+    /// Set the destination address.
     pub fn da(mut self, address: u8) -> Self {
         self.da = address;
         self
     }
 
+    /// Build frame ID.
     pub fn build(self) -> Id {
         let mut id = (self.priority as u32) << 26 | (self.pgn as u32) << 8 | self.sa as u32;
 
@@ -260,7 +269,7 @@ impl AsMut<[u8]> for FrameBuilder {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Id, IdBuilder, PDUFormat};
+    use crate::{Id, IdBuilder, PDUFormat, PGN};
 
     #[test]
     fn id_decode_1() {
@@ -270,6 +279,7 @@ mod tests {
         assert_eq!(id.priority(), 6);
         assert_eq!(id.dp(), 0);
         assert_eq!(id.pgn(), 59904);
+        assert_eq!(PGN::from(id.pgn()), PGN::RequestMessage);
         assert_eq!(id.pf(), PDUFormat::PDU1(234));
         assert_eq!(id.is_broadcast(), false);
         assert_eq!(id.ps(), 255);
@@ -330,7 +340,11 @@ mod tests {
 
     #[test]
     fn id_build_3() {
-        let id = IdBuilder::from_pgn(61444).priority(3).da(0).sa(12).build();
+        let id = IdBuilder::from_pgn(PGN::ElectronicEngineController2.into())
+            .priority(3)
+            .da(0)
+            .sa(12)
+            .build();
 
         assert_eq!(id, Id::new(0xCF0040C));
     }

@@ -9,17 +9,32 @@ pub enum PGN {
     ProprietarilyConfigurableMessage2,
     /// PCM3 - Proprietarily Configurable Message 3.
     ProprietarilyConfigurableMessage3,
+    /// XFER - Transfer.
+    Transfer,
     /// EEC1 - Electronic Engine Controller 1.
     ElectronicEngineController1,
     /// EEC2 - Electronic Engine Controller 2.
     ElectronicEngineController2,
     /// SOFT - Software Identification.
     SoftwareIdentification,
-    /// RQST - Request Message.
-    RequestMessage,
+    /// RQST - Request.
+    Request,
+    /// RQST2 - Request 2.
+    Request2,
+    /// AC - Address Claimed.
     AddressClaimed,
+    /// PropA - Proprietary A.
+    ProprietaryA,
+    /// CA - Commanded Address.
+    CommandedAddress,
+    /// TD - Time / Date.
+    TimeDate,
     /// ET1 - Engine Temperature 1.
     EngineTemperature1,
+    /// VEP1 - Vehicle Electrical Power 1.
+    VehicleElectricalPower1,
+    /// PropB - Proprietary B.
+    ProprietaryB(u16),
     /// Other PGN.
     Other(u16),
 }
@@ -27,16 +42,23 @@ pub enum PGN {
 impl From<u16> for PGN {
     fn from(value: u16) -> Self {
         match value {
-            898 => PGN::TorqueSpeedControl1,
+            0 => PGN::TorqueSpeedControl1,
             45_312 => PGN::ProprietarilyConfigurableMessage1,
             45_568 => PGN::ProprietarilyConfigurableMessage2,
             45_824 => PGN::ProprietarilyConfigurableMessage3,
+            51_712 => PGN::Transfer,
             61_443 => PGN::ElectronicEngineController1,
             61_444 => PGN::ElectronicEngineController2,
             65_242 => PGN::SoftwareIdentification,
-            59_904 => PGN::RequestMessage,
+            51_456 => PGN::Request2,
+            59_904 => PGN::Request,
             60_928 => PGN::AddressClaimed,
+            61_184 => PGN::ProprietaryA,
+            65_240 => PGN::CommandedAddress,
+            65_254 => PGN::TimeDate,
             65_262 => PGN::EngineTemperature1,
+            65_271 => PGN::VehicleElectricalPower1,
+            65_280..=65_535 => PGN::ProprietaryB(value),
             _ => PGN::Other(value),
         }
     }
@@ -45,16 +67,23 @@ impl From<u16> for PGN {
 impl From<PGN> for u16 {
     fn from(value: PGN) -> Self {
         match value {
-            PGN::TorqueSpeedControl1 => 898,
+            PGN::TorqueSpeedControl1 => 0,
             PGN::ProprietarilyConfigurableMessage1 => 45_312,
             PGN::ProprietarilyConfigurableMessage2 => 45_568,
             PGN::ProprietarilyConfigurableMessage3 => 45_824,
+            PGN::Transfer => 51_712,
             PGN::ElectronicEngineController1 => 61_443,
             PGN::ElectronicEngineController2 => 61_444,
             PGN::SoftwareIdentification => 65_242,
-            PGN::RequestMessage => 59_904,
+            PGN::Request => 59_904,
+            PGN::Request2 => 51_456,
             PGN::AddressClaimed => 60_928,
+            PGN::ProprietaryA => 61_184,
+            PGN::CommandedAddress => 65_240,
+            PGN::TimeDate => 65_254,
             PGN::EngineTemperature1 => 65_262,
+            PGN::VehicleElectricalPower1 => 65_271,
+            PGN::ProprietaryB(value_u16) => value_u16,
             PGN::Other(value_u16) => value_u16,
         }
     }

@@ -309,7 +309,7 @@ mod tests {
         assert_eq!(id.priority(), 6);
         assert_eq!(id.dp(), 0);
         assert_eq!(id.pgn(), 59904);
-        assert_eq!(PGN::from(id.pgn()), PGN::RequestMessage);
+        assert_eq!(PGN::from(id.pgn()), PGN::Request);
         assert_eq!(id.pf(), PDUFormat::PDU1(234));
         assert_eq!(id.is_broadcast(), false);
         assert_eq!(id.ps(), 255);
@@ -352,14 +352,17 @@ mod tests {
 
     #[test]
     fn id_build_1() {
-        let id = IdBuilder::from_pgn(51712).priority(3).sa(139).build();
+        let id = IdBuilder::from_pgn(PGN::Transfer.into())
+            .priority(3)
+            .sa(139)
+            .build();
 
         assert_eq!(id, Id::new(0xCCA008B));
     }
 
     #[test]
     fn id_build_2() {
-        let id = IdBuilder::from_pgn(51712)
+        let id = IdBuilder::from_pgn(PGN::Transfer.into())
             .priority(3)
             .da(0x34)
             .sa(139)
@@ -381,7 +384,9 @@ mod tests {
 
     #[test]
     fn id_build_4() {
-        let id = IdBuilder::from_pgn(65271).sa(234).build();
+        let id = IdBuilder::from_pgn(PGN::VehicleElectricalPower1.into())
+            .sa(234)
+            .build();
 
         assert_eq!(id, Id::new(0x18FEF7EA));
     }
@@ -389,7 +394,7 @@ mod tests {
     #[test]
     fn frame_build_1() {
         let frame = FrameBuilder::new(
-            IdBuilder::from_pgn(PGN::RequestMessage.into())
+            IdBuilder::from_pgn(PGN::Request.into())
                 .da(0x20)
                 .sa(0x10)
                 .build(),
@@ -422,7 +427,7 @@ mod tests {
 
     #[test]
     fn frame_build_3() {
-        let frame = FrameBuilder::new(IdBuilder::from_pgn(51712).build()).build();
+        let frame = FrameBuilder::new(IdBuilder::from_pgn(PGN::Transfer.into()).build()).build();
 
         assert_eq!(frame.id(), &Id::new(0x18CA0000));
         assert_eq!(frame.pdu(), &[]);
@@ -432,7 +437,8 @@ mod tests {
 
     #[test]
     fn frame_build_4() {
-        let mut frame_builder = FrameBuilder::default().id(IdBuilder::from_pgn(51712).build());
+        let mut frame_builder =
+            FrameBuilder::default().id(IdBuilder::from_pgn(PGN::Transfer.into()).build());
 
         frame_builder
             .as_mut()

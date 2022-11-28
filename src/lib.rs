@@ -224,7 +224,7 @@ impl Frame {
 
 impl core::fmt::Display for Frame {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}    {:X?}", self.id(), self.pdu())
+        write!(f, "{}    {:02X?}", self.id(), self.pdu())
     }
 }
 
@@ -390,6 +390,15 @@ mod tests {
 
         assert_eq!(id, Id::new(0x18FEF7EA));
     }
+
+    // #[test]
+    // fn id_build_5() {
+    //     let id = IdBuilder::from_pgn(126720)
+    //         .sa(234)
+    //         .build();
+
+    //     assert_eq!(id, Id::new(0x18FEF7EA));
+    // }
 
     #[test]
     fn frame_build_1() {

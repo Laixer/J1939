@@ -37,6 +37,8 @@ pub enum PGN {
     EngineTemperature1,
     /// VEP1 - Vehicle Electrical Power 1.
     VehicleElectricalPower1,
+    /// ACKM - Acknowledgment Message.
+    AcknowledgmentMessage,
     /// PropB - Proprietary B.
     ProprietaryB(u16),
     /// Other PGN.
@@ -52,6 +54,7 @@ impl From<u16> for PGN {
             45_824 => PGN::ProprietarilyConfigurableMessage3,
             51_456 => PGN::Request2,
             51_712 => PGN::Transfer,
+            59_392 => PGN::AcknowledgmentMessage,
             59_904 => PGN::Request,
             60_160 => PGN::TransportProtocolDataTransfer,
             60_416 => PGN::TransportProtocolConnectionManagement,
@@ -79,6 +82,7 @@ impl From<PGN> for u16 {
             PGN::ProprietarilyConfigurableMessage3 => 45_824,
             PGN::Request2 => 51_456,
             PGN::Transfer => 51_712,
+            PGN::AcknowledgmentMessage => 59_392,
             PGN::Request => 59_904,
             PGN::TransportProtocolDataTransfer => 60_160,
             PGN::TransportProtocolConnectionManagement => 60_416,

@@ -55,6 +55,13 @@ impl PGN {
 
         [byte_array[3], byte_array[2], byte_array[1]]
     }
+
+    pub fn from_le_bytes(bytes: [u8; 3]) -> Self {
+        let pgn = u32::from_be_bytes([0x0, bytes[2], bytes[1], bytes[0]]);
+        let pgn: u16 = pgn.try_into().unwrap();
+
+        PGN::from(pgn)
+    }
 }
 
 impl From<u16> for PGN {

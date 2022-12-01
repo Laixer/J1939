@@ -50,7 +50,12 @@ impl Id {
     }
 
     /// Parameter Group Number
-    pub fn pgn(&self) -> u16 {
+    pub fn pgn(&self) -> PGN {
+        self.pgn_raw().into()
+    }
+
+    /// Parameter Group Number
+    pub fn pgn_raw(&self) -> u16 {
         match self.pf() {
             PDUFormat::PDU1(_) => (self.0 >> 8) & 0xff00,
             PDUFormat::PDU2(_) => (self.0 >> 8) & 0xffff,
@@ -113,7 +118,7 @@ impl core::fmt::Display for Id {
                 "[0x{:X?}] Prio: {} PGN: {} DA: 0x{:X?}",
                 self.as_raw(),
                 self.priority(),
-                self.pgn(),
+                self.pgn_raw(),
                 da
             )
         } else {
@@ -122,7 +127,7 @@ impl core::fmt::Display for Id {
                 "[0x{:X?}] Prio: {} PGN: {}",
                 self.as_raw(),
                 self.priority(),
-                self.pgn()
+                self.pgn_raw()
             )
         }
     }
@@ -141,10 +146,10 @@ pub struct IdBuilder {
 
 impl IdBuilder {
     /// Construct ID builder from PGN.
-    pub fn from_pgn(pgn: u16) -> Self {
+    pub fn from_pgn(pgn: PGN) -> Self {
         Self {
             priority: 6,
-            pgn,
+            pgn: pgn.into(),
             sa: 0,
             da: 0,
         }
@@ -308,8 +313,8 @@ mod tests {
         assert_eq!(id.as_raw(), 0x18EAFF00);
         assert_eq!(id.priority(), 6);
         assert_eq!(id.dp(), 0);
-        assert_eq!(id.pgn(), 59904);
-        assert_eq!(PGN::from(id.pgn()), PGN::Request);
+        assert_eq!(id.pgn_raw(), 59904);
+        assert_eq!(id.pgn(), PGN::Request);
         assert_eq!(id.pf(), PDUFormat::PDU1(234));
         assert_eq!(id.is_broadcast(), false);
         assert_eq!(id.ps(), 255);
@@ -325,7 +330,7 @@ mod tests {
         assert_eq!(id.as_raw(), 0xCFE6CEE);
         assert_eq!(id.priority(), 3);
         assert_eq!(id.dp(), 0);
-        assert_eq!(id.pgn(), 65132);
+        assert_eq!(id.pgn_raw(), 65132);
         assert_eq!(id.pf(), PDUFormat::PDU2(254));
         assert_eq!(id.is_broadcast(), true);
         assert_eq!(id.ps(), 108);
@@ -341,7 +346,7 @@ mod tests {
         assert_eq!(id.as_raw(), 0xDFE6CEE);
         assert_eq!(id.priority(), 3);
         assert_eq!(id.dp(), 1);
-        assert_eq!(id.pgn(), 65132);
+        assert_eq!(id.pgn_raw(), 65132);
         assert_eq!(id.pf(), PDUFormat::PDU2(254));
         assert_eq!(id.is_broadcast(), true);
         assert_eq!(id.ps(), 108);

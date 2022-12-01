@@ -39,10 +39,22 @@ pub enum PGN {
     VehicleElectricalPower1,
     /// ACKM - Acknowledgment Message.
     AcknowledgmentMessage,
+    /// CI - Component Identification.
+    ComponentIdentification,
+    /// VI - Vehicle Identification.
+    VehicleIdentification,
     /// PropB - Proprietary B.
     ProprietaryB(u16),
     /// Other PGN.
     Other(u16),
+}
+
+impl PGN {
+    pub fn to_le_bytes(self) -> [u8; 3] {
+        let byte_array = u32::to_be_bytes(u16::from(self) as u32);
+
+        [byte_array[3], byte_array[2], byte_array[1]]
+    }
 }
 
 impl From<u16> for PGN {
@@ -65,6 +77,8 @@ impl From<u16> for PGN {
             65_240 => PGN::CommandedAddress,
             65_242 => PGN::SoftwareIdentification,
             65_254 => PGN::TimeDate,
+            65_259 => PGN::ComponentIdentification,
+            65_260 => PGN::VehicleIdentification,
             65_262 => PGN::EngineTemperature1,
             65_271 => PGN::VehicleElectricalPower1,
             65_280..=65_535 => PGN::ProprietaryB(value),
@@ -93,6 +107,8 @@ impl From<PGN> for u16 {
             PGN::CommandedAddress => 65_240,
             PGN::SoftwareIdentification => 65_242,
             PGN::TimeDate => 65_254,
+            PGN::ComponentIdentification => 65_259,
+            PGN::VehicleIdentification => 65_260,
             PGN::EngineTemperature1 => 65_262,
             PGN::VehicleElectricalPower1 => 65_271,
             PGN::ProprietaryB(value_u16) => value_u16,

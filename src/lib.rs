@@ -26,7 +26,7 @@ pub struct Id(u32);
 impl Id {
     /// Construct new Frame ID.
     pub const fn new(id: u32) -> Self {
-        Self(id)
+        Self(id & 0x1fffffff)
     }
 
     /// Return ID as raw integer.
@@ -139,7 +139,7 @@ pub struct IdBuilder {
     /// Message priority.
     priority: u8,
     /// Parameter group number.
-    pgn: u16,
+    pgn: u16, // TODO: Should be u32
     /// Source address.
     sa: u8,
     /// Destination address.
@@ -209,21 +209,25 @@ impl Frame {
     }
 
     /// Get frame ID.
+    #[inline]
     pub fn id(&self) -> &Id {
         &self.id
     }
 
     /// Get PDU reference.
+    #[inline]
     pub fn pdu(&self) -> &[u8] {
         &self.pdu[..self.pdu_length]
     }
 
     /// PDU data length.
+    #[inline]
     pub fn len(&self) -> usize {
         self.pdu_length
     }
 
     /// Check if PDU data is empty.
+    #[inline]
     pub fn is_empty(&self) -> bool {
         self.pdu_length == 0
     }

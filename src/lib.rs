@@ -6,6 +6,7 @@
 pub mod decode;
 
 mod pgn;
+pub mod protocol;
 
 pub use pgn::*;
 

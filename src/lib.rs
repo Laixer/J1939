@@ -30,6 +30,7 @@ impl Id {
     }
 
     /// Return ID as raw integer.
+    #[inline]
     pub const fn as_raw(&self) -> u32 {
         self.0
     }
@@ -55,9 +56,8 @@ impl Id {
         self.pgn_raw().into()
     }
 
-    // TODO: Should return u32.
     /// Parameter Group Number
-    pub fn pgn_raw(&self) -> u16 {
+    pub fn pgn_raw(&self) -> u32 {
         match self.pf() {
             PDUFormat::PDU1(_) => (self.0 >> 8) & 0xff00,
             PDUFormat::PDU2(_) => (self.0 >> 8) & 0xffff,
@@ -139,7 +139,7 @@ pub struct IdBuilder {
     /// Message priority.
     priority: u8,
     /// Parameter group number.
-    pgn: u16, // TODO: Should be u32
+    pgn: u32,
     /// Source address.
     sa: u8,
     /// Destination address.

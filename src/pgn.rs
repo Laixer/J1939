@@ -70,29 +70,28 @@ pub enum PGN {
     /// VI - Vehicle Identification.
     VehicleIdentification,
     /// PropB - Proprietary B.
-    ProprietaryB(u16),
+    ProprietaryB(u32),
     /// Other PGN.
-    Other(u16),
+    Other(u32),
 }
 
 impl PGN {
     pub fn to_le_bytes(self) -> [u8; 3] {
-        let byte_array = u32::to_be_bytes(u16::from(self) as u32);
+        let byte_array = u32::to_be_bytes(self.into());
 
         [byte_array[3], byte_array[2], byte_array[1]]
     }
 
     pub fn from_le_bytes(bytes: [u8; 3]) -> Self {
         let pgn = u32::from_be_bytes([0x0, bytes[2], bytes[1], bytes[0]]);
-        let pgn: u16 = pgn.try_into().unwrap();
 
-        PGN::from(pgn)
+        PGN::from(pgn & 0x3ffff)
     }
 }
 
-impl From<u16> for PGN {
-    fn from(value: u16) -> Self {
-        match value {
+impl From<u32> for PGN {
+    fn from(value: u32) -> Self {
+        match value & 0x3ffff {
             0 => PGN::TorqueSpeedControl1,
             45_312 => PGN::ProprietarilyConfigurableMessage1,
             45_568 => PGN::ProprietarilyConfigurableMessage2,
@@ -127,13 +126,13 @@ impl From<u16> for PGN {
             65_260 => PGN::VehicleIdentification,
             65_262 => PGN::EngineTemperature1,
             65_271 => PGN::VehicleElectricalPower1,
-            65_280..=65_535 => PGN::ProprietaryB(value),
-            _ => PGN::Other(value),
+            65_280..=65_535 => PGN::ProprietaryB(value & 0x3ffff),
+            _ => PGN::Other(value & 0x3ffff),
         }
     }
 }
 
-impl From<PGN> for u16 {
+impl From<PGN> for u32 {
     fn from(value: PGN) -> Self {
         match value {
             PGN::TorqueSpeedControl1 => 0,
@@ -170,8 +169,8 @@ impl From<PGN> for u16 {
             PGN::VehicleIdentification => 65_260,
             PGN::EngineTemperature1 => 65_262,
             PGN::VehicleElectricalPower1 => 65_271,
-            PGN::ProprietaryB(value_u16) => value_u16,
-            PGN::Other(value_u16) => value_u16,
+            PGN::ProprietaryB(value_u32) => value_u32 & 0x3ffff,
+            PGN::Other(value_u32) => value_u32 & 0x3ffff,
         }
     }
 }

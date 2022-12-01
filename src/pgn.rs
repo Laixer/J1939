@@ -9,6 +9,32 @@ pub enum PGN {
     ProprietarilyConfigurableMessage2,
     /// PCM3 - Proprietarily Configurable Message 3.
     ProprietarilyConfigurableMessage3,
+    /// PCM4 - Proprietarily Configurable Message 4.
+    ProprietarilyConfigurableMessage4,
+    /// PCM5 - Proprietarily Configurable Message 5.
+    ProprietarilyConfigurableMessage5,
+    /// PCM6 - Proprietarily Configurable Message 6.
+    ProprietarilyConfigurableMessage6,
+    /// PCM7 - Proprietarily Configurable Message 7.
+    ProprietarilyConfigurableMessage7,
+    /// PCM8 - Proprietarily Configurable Message 8.
+    ProprietarilyConfigurableMessage8,
+    /// PCM9 - Proprietarily Configurable Message 9.
+    ProprietarilyConfigurableMessage9,
+    /// PCM10 - Proprietarily Configurable Message 10.
+    ProprietarilyConfigurableMessage10,
+    /// PCM11 - Proprietarily Configurable Message 11.
+    ProprietarilyConfigurableMessage11,
+    /// PCM12 - Proprietarily Configurable Message 12.
+    ProprietarilyConfigurableMessage12,
+    /// PCM13 - Proprietarily Configurable Message 13.
+    ProprietarilyConfigurableMessage13,
+    /// PCM14 - Proprietarily Configurable Message 14.
+    ProprietarilyConfigurableMessage14,
+    /// PCM15 - Proprietarily Configurable Message 15.
+    ProprietarilyConfigurableMessage15,
+    /// PCM16 - Proprietarily Configurable Message 16.
+    ProprietarilyConfigurableMessage16,
     /// XFER - Transfer.
     Transfer,
     /// EEC1 - Electronic Engine Controller 1.
@@ -71,6 +97,19 @@ impl From<u16> for PGN {
             45_312 => PGN::ProprietarilyConfigurableMessage1,
             45_568 => PGN::ProprietarilyConfigurableMessage2,
             45_824 => PGN::ProprietarilyConfigurableMessage3,
+            46_080 => PGN::ProprietarilyConfigurableMessage4,
+            46_336 => PGN::ProprietarilyConfigurableMessage5,
+            46_592 => PGN::ProprietarilyConfigurableMessage6,
+            46_848 => PGN::ProprietarilyConfigurableMessage7,
+            47_104 => PGN::ProprietarilyConfigurableMessage8,
+            47_360 => PGN::ProprietarilyConfigurableMessage9,
+            47_616 => PGN::ProprietarilyConfigurableMessage10,
+            47_872 => PGN::ProprietarilyConfigurableMessage11,
+            48_128 => PGN::ProprietarilyConfigurableMessage12,
+            48_384 => PGN::ProprietarilyConfigurableMessage13,
+            48_640 => PGN::ProprietarilyConfigurableMessage14,
+            48_896 => PGN::ProprietarilyConfigurableMessage15,
+            49_152 => PGN::ProprietarilyConfigurableMessage16,
             51_456 => PGN::Request2,
             51_712 => PGN::Transfer,
             59_392 => PGN::AcknowledgmentMessage,
@@ -101,6 +140,19 @@ impl From<PGN> for u16 {
             PGN::ProprietarilyConfigurableMessage1 => 45_312,
             PGN::ProprietarilyConfigurableMessage2 => 45_568,
             PGN::ProprietarilyConfigurableMessage3 => 45_824,
+            PGN::ProprietarilyConfigurableMessage4 => 46_080,
+            PGN::ProprietarilyConfigurableMessage5 => 46_336,
+            PGN::ProprietarilyConfigurableMessage6 => 46_592,
+            PGN::ProprietarilyConfigurableMessage7 => 46_848,
+            PGN::ProprietarilyConfigurableMessage8 => 47_104,
+            PGN::ProprietarilyConfigurableMessage9 => 47_360,
+            PGN::ProprietarilyConfigurableMessage10 => 47_616,
+            PGN::ProprietarilyConfigurableMessage11 => 47_872,
+            PGN::ProprietarilyConfigurableMessage12 => 48_128,
+            PGN::ProprietarilyConfigurableMessage13 => 48_384,
+            PGN::ProprietarilyConfigurableMessage14 => 48_640,
+            PGN::ProprietarilyConfigurableMessage15 => 48_896,
+            PGN::ProprietarilyConfigurableMessage16 => 49_152,
             PGN::Request2 => 51_456,
             PGN::Transfer => 51_712,
             PGN::AcknowledgmentMessage => 59_392,

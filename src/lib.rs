@@ -54,6 +54,7 @@ impl Id {
         self.pgn_raw().into()
     }
 
+    // TODO: Should return u32.
     /// Parameter Group Number
     pub fn pgn_raw(&self) -> u16 {
         match self.pf() {

@@ -1,5 +1,5 @@
 /// Parameter group number.
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum PGN {
     /// TSC1 - Torque/Speed Control 1.
     TorqueSpeedControl1,

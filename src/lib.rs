@@ -400,14 +400,12 @@ mod tests {
         assert_eq!(id, Id::new(0x18FEF7EA));
     }
 
-    // #[test]
-    // fn id_build_5() {
-    //     let id = IdBuilder::from_pgn(126720)
-    //         .sa(234)
-    //         .build();
+    #[test]
+    fn id_build_5() {
+        let id = IdBuilder::from_pgn(PGN::Other(126720)).sa(234).build();
 
-    //     assert_eq!(id, Id::new(0x18FEF7EA));
-    // }
+        assert_eq!(id, Id::new(0x19EF00EA));
+    }
 
     #[test]
     fn frame_build_1() {

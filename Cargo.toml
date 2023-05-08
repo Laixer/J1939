@@ -1,6 +1,6 @@
 [package]
 name = "j1939"
-version = "0.1.11"
+version = "0.1.13"
 authors = ["Laixer Equipment B.V. <info@laixer.com>"]
 edition = "2021"
 repository = "https://github.com/Laixer/J1939"

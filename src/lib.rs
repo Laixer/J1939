@@ -62,8 +62,6 @@ impl Id {
             PDUFormat::PDU1(_) => (self.0 >> 8) & 0xff00,
             PDUFormat::PDU2(_) => (self.0 >> 8) & 0xffff,
         }
-        .try_into()
-        .unwrap()
     }
 
     /// PDU Format
@@ -177,7 +175,7 @@ impl IdBuilder {
 
     /// Build frame ID.
     pub fn build(self) -> Id {
-        let mut id = (self.priority as u32) << 26 | (self.pgn as u32) << 8 | self.sa as u32;
+        let mut id = (self.priority as u32) << 26 | self.pgn << 8 | self.sa as u32;
 
         if let PDUFormat::PDU1(_) = Id::new(id).pf() {
             id |= (self.da as u32) << 8;

@@ -1,6 +1,6 @@
 use crate::{FrameBuilder, IdBuilder, PGN};
 
-/// Request a PGN message.
+/// Create PGN request frame.
 pub fn request(da: u8, pgn: PGN) -> crate::Frame {
     let byte_array = pgn.to_le_bytes();
 

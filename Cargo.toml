@@ -10,7 +10,5 @@ SAE J1939 is a set of standards that define how ECUs communicate via the CAN bus
 categories = ["can", "network"]
 keywords = ["can", "j1939", "sae-j1939", "can-bus"]
 
-[dependencies]
-
 [features]
 can = []

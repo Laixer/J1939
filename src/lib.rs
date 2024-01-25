@@ -320,7 +320,7 @@ mod tests {
         assert_eq!(id.pgn_raw(), 59904);
         assert_eq!(id.pgn(), PGN::Request);
         assert_eq!(id.pf(), PDUFormat::PDU1(234));
-        assert_eq!(id.is_broadcast(), false);
+        assert!(!id.is_broadcast());
         assert_eq!(id.ps(), 255);
         assert_eq!(id.destination_address(), Some(255));
         assert_eq!(id.group_extension(), None);
@@ -336,7 +336,7 @@ mod tests {
         assert_eq!(id.dp(), 0);
         assert_eq!(id.pgn_raw(), 65132);
         assert_eq!(id.pf(), PDUFormat::PDU2(254));
-        assert_eq!(id.is_broadcast(), true);
+        assert!(id.is_broadcast());
         assert_eq!(id.ps(), 108);
         assert_eq!(id.destination_address(), None);
         assert_eq!(id.group_extension(), Some(108));
@@ -352,7 +352,7 @@ mod tests {
         assert_eq!(id.dp(), 1);
         assert_eq!(id.pgn_raw(), 65132);
         assert_eq!(id.pf(), PDUFormat::PDU2(254));
-        assert_eq!(id.is_broadcast(), true);
+        assert!(id.is_broadcast());
         assert_eq!(id.ps(), 108);
         assert_eq!(id.destination_address(), None);
         assert_eq!(id.group_extension(), Some(108));
@@ -361,7 +361,7 @@ mod tests {
 
     #[test]
     fn id_build_1() {
-        let id = IdBuilder::from_pgn(PGN::Transfer.into())
+        let id = IdBuilder::from_pgn(PGN::Transfer)
             .priority(3)
             .sa(139)
             .build();
@@ -371,7 +371,7 @@ mod tests {
 
     #[test]
     fn id_build_2() {
-        let id = IdBuilder::from_pgn(PGN::Transfer.into())
+        let id = IdBuilder::from_pgn(PGN::Transfer)
             .priority(3)
             .da(0x34)
             .sa(139)
@@ -382,7 +382,7 @@ mod tests {
 
     #[test]
     fn id_build_3() {
-        let id = IdBuilder::from_pgn(PGN::ElectronicEngineController2.into())
+        let id = IdBuilder::from_pgn(PGN::ElectronicEngineController2)
             .priority(3)
             .da(0)
             .sa(12)
@@ -393,7 +393,7 @@ mod tests {
 
     #[test]
     fn id_build_4() {
-        let id = IdBuilder::from_pgn(PGN::VehicleElectricalPower1.into())
+        let id = IdBuilder::from_pgn(PGN::VehicleElectricalPower1)
             .sa(234)
             .build();
 
@@ -409,25 +409,20 @@ mod tests {
 
     #[test]
     fn frame_build_1() {
-        let frame = FrameBuilder::new(
-            IdBuilder::from_pgn(PGN::Request.into())
-                .da(0x20)
-                .sa(0x10)
-                .build(),
-        )
-        .copy_from_slice(&[0x1, 0x2, 0x3])
-        .build();
+        let frame = FrameBuilder::new(IdBuilder::from_pgn(PGN::Request).da(0x20).sa(0x10).build())
+            .copy_from_slice(&[0x1, 0x2, 0x3])
+            .build();
 
         assert_eq!(frame.id(), &Id::new(0x18EA2010));
         assert_eq!(frame.pdu(), &[0x1, 0x2, 0x3]);
         assert_eq!(frame.len(), 3);
-        assert_eq!(frame.is_empty(), false);
+        assert!(!frame.is_empty());
     }
 
     #[test]
     fn frame_build_2() {
         let frame = FrameBuilder::new(
-            IdBuilder::from_pgn(PGN::AddressClaimed.into())
+            IdBuilder::from_pgn(PGN::AddressClaimed)
                 .priority(3)
                 .sa(0x10)
                 .build(),
@@ -438,23 +433,23 @@ mod tests {
         assert_eq!(frame.id(), &Id::new(0xCEE0010));
         assert_eq!(frame.pdu(), &[0xff; 8]);
         assert_eq!(frame.len(), 8);
-        assert_eq!(frame.is_empty(), false);
+        assert!(!frame.is_empty());
     }
 
     #[test]
     fn frame_build_3() {
-        let frame = FrameBuilder::new(IdBuilder::from_pgn(PGN::Transfer.into()).build()).build();
+        let frame = FrameBuilder::new(IdBuilder::from_pgn(PGN::Transfer).build()).build();
 
         assert_eq!(frame.id(), &Id::new(0x18CA0000));
         assert_eq!(frame.pdu(), &[]);
         assert_eq!(frame.len(), 0);
-        assert_eq!(frame.is_empty(), true);
+        assert!(frame.is_empty());
     }
 
     #[test]
     fn frame_build_4() {
         let mut frame_builder =
-            FrameBuilder::default().id(IdBuilder::from_pgn(PGN::Transfer.into()).build());
+            FrameBuilder::default().id(IdBuilder::from_pgn(PGN::Transfer).build());
 
         frame_builder
             .as_mut()
@@ -467,6 +462,6 @@ mod tests {
         assert_eq!(frame.id(), &Id::new(0x18CA0000));
         assert_eq!(frame.pdu(), &[0x8, 0x7, 0x6, 0x5, 0x4, 0x3, 0x2, 0x1]);
         assert_eq!(frame.len(), 8);
-        assert_eq!(frame.is_empty(), false);
+        assert!(!frame.is_empty());
     }
 }

@@ -261,10 +261,3 @@ pub fn spn1602(value: u8) -> Option<u8> {
         None
     }
 }
-
-// println!("Month: {}", buf[3]); // SPN 963
-// println!("Day: {}", buf[4] as f32 * 0.25); // SPN 962
-// println!("Year: {}", buf[5] as u16 + 1985); // SPN 964
-//                                             // println!("Local minute offset: {}", buf[6] - 125); // SPN 1601
-//                                             // println!("Local hour offset: {}", buf[7] - 125); // SPN 1602
-// }

@@ -382,13 +382,14 @@ mod tests {
 
     #[test]
     fn id_build_3() {
-        let id = IdBuilder::from_pgn(PGN::ElectronicEngineController2)
+        let id = IdBuilder::from_pgn(PGN::ElectronicEngineController1)
             .priority(3)
             .da(0)
             .sa(12)
             .build();
 
         assert_eq!(id, Id::new(0xCF0040C));
+        assert_eq!(id.pgn_raw(), 61444);
     }
 
     #[test]

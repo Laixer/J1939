@@ -115,7 +115,7 @@ impl core::fmt::Display for Id {
         if let Some(da) = self.destination_address() {
             write!(
                 f,
-                "[0x{:X?}] Prio: {} PGN: {} DA: 0x{:X?}",
+                "[0x{:08X?}] Prio: {} PGN: {} DA: 0x{:X?}",
                 self.as_raw(),
                 self.priority(),
                 self.pgn_raw(),
@@ -124,7 +124,7 @@ impl core::fmt::Display for Id {
         } else {
             write!(
                 f,
-                "[0x{:X?}] Prio: {} PGN: {}",
+                "[0x{:08X?}] Prio: {} PGN: {}",
                 self.as_raw(),
                 self.priority(),
                 self.pgn_raw()

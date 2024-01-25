@@ -188,7 +188,7 @@ pub fn spn899(value: u8) -> Option<EngineTorqueMode> {
             0b1001 => EngineTorqueMode::HighSpeedGovernor,
             0b1010 => EngineTorqueMode::BrakingSystem,
             0b1011 => EngineTorqueMode::RemoteAccelerator,
-            0b1100 | 0b1101 | 0b1110 => EngineTorqueMode::Other,
+            0b1100..=0b1110 => EngineTorqueMode::Other,
             _ => unreachable!(),
         };
 
@@ -198,12 +198,70 @@ pub fn spn899(value: u8) -> Option<EngineTorqueMode> {
     }
 }
 
-// println!("Actual Engine: {} %", buf[2] - 125);
+pub fn spn959(value: u8) -> Option<u8> {
+    if value != 0xff {
+        Some((value as f32 * 0.25) as u8)
+    } else {
+        None
+    }
+}
 
-// pub fn pgn65254(value: &[u8; 8]) {
-// println!("Seconds: {}", buf[0] as f32 * 0.25); // SPN 959
-// println!("Minutes: {}", buf[1]); // SPN 960
-// println!("Hours: {}", buf[2]); // SPN 961
+pub fn spn960(value: u8) -> Option<u8> {
+    if value != 0xff {
+        Some(value)
+    } else {
+        None
+    }
+}
+
+pub fn spn961(value: u8) -> Option<u8> {
+    if value != 0xff {
+        Some(value)
+    } else {
+        None
+    }
+}
+
+pub fn spn963(value: u8) -> Option<u8> {
+    if value != 0xff {
+        Some(value)
+    } else {
+        None
+    }
+}
+
+pub fn spn962(value: u8) -> Option<u8> {
+    if value != 0xff {
+        Some((value as f32 * 0.25) as u8)
+    } else {
+        None
+    }
+}
+
+pub fn spn964(value: u8) -> Option<u16> {
+    if value != 0xff {
+        Some(value as u16 + 1985)
+    } else {
+        None
+    }
+}
+
+pub fn spn1601(value: u8) -> Option<u8> {
+    if value != 0xff {
+        Some(value - 125)
+    } else {
+        None
+    }
+}
+
+pub fn spn1602(value: u8) -> Option<u8> {
+    if value != 0xff {
+        Some(value - 125)
+    } else {
+        None
+    }
+}
+
 // println!("Month: {}", buf[3]); // SPN 963
 // println!("Day: {}", buf[4] as f32 * 0.25); // SPN 962
 // println!("Year: {}", buf[5] as u16 + 1985); // SPN 964

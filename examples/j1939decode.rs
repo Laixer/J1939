@@ -4,13 +4,13 @@ use j1939::Id;
 
 fn usage() {
     println!("Usage: j1939decode <input>");
-    println!("");
+    println!();
     println!("Options:");
     println!("  <input>     29-bit CAN ID in hexadecimal format (0x18EAFF00)");
 }
 
 fn main() {
-    let input = env::args().skip(1).next();
+    let input = env::args().nth(1);
 
     if input.is_none() {
         usage();

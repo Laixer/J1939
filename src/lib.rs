@@ -115,7 +115,7 @@ impl core::fmt::Display for Id {
         if let Some(da) = self.destination_address() {
             write!(
                 f,
-                "[0x{:08X?}] Prio: {} PGN: {} DA: 0x{:X?}",
+                "[{:08X?}] Prio: {} PGN: {} DA: 0x{:X?}",
                 self.as_raw(),
                 self.priority(),
                 self.pgn_raw(),
@@ -124,7 +124,7 @@ impl core::fmt::Display for Id {
         } else {
             write!(
                 f,
-                "[0x{:08X?}] Prio: {} PGN: {}",
+                "[{:08X?}] Prio: {} PGN: {}",
                 self.as_raw(),
                 self.priority(),
                 self.pgn_raw()
@@ -462,6 +462,18 @@ mod tests {
 
         assert_eq!(frame.id(), &Id::new(0x18CA0000));
         assert_eq!(frame.pdu(), &[0x8, 0x7, 0x6, 0x5, 0x4, 0x3, 0x2, 0x1]);
+        assert_eq!(frame.len(), 8);
+        assert!(!frame.is_empty());
+    }
+
+    #[test]
+    fn frame_build_5() {
+        let frame = FrameBuilder::default()
+            .id(IdBuilder::from_pgn(PGN::ElectronicEngineController2).build())
+            .set_len(8)
+            .build();
+
+        assert_eq!(frame.pdu(), &[0xff; 8]);
         assert_eq!(frame.len(), 8);
         assert!(!frame.is_empty());
     }

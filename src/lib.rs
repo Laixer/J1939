@@ -13,6 +13,14 @@ pub use pgn::*;
 #[cfg(feature = "can")]
 pub mod can;
 
+pub const PDU_MAX_LENGTH: usize = 8;
+
+/// Protocol Data Unit Format.
+///
+/// There are two different PDU formats. PDU1 format is used for sending messages with a specific
+/// destination address. PDU2 format can only sent broadcasts. The PDU format byte in the identifier
+/// determines the message format. If the PDU format byte is less than 240 (0xF0) then the format is
+/// PDU1 and if it is greater than 239 it is PDU2.
 #[derive(Debug, PartialEq, Eq)]
 pub enum PDUFormat {
     PDU1(u8),
@@ -156,18 +164,21 @@ impl IdBuilder {
     }
 
     /// Set the priority.
+    #[inline]
     pub fn priority(mut self, priority: u8) -> Self {
         self.priority = priority.min(7);
         self
     }
 
     /// Set the sender address.
+    #[inline]
     pub fn sa(mut self, address: u8) -> Self {
         self.sa = address;
         self
     }
 
     /// Set the destination address.
+    #[inline]
     pub fn da(mut self, address: u8) -> Self {
         self.da = address;
         self
@@ -191,7 +202,7 @@ pub struct Frame {
     /// Frame ID.
     id: Id,
     /// PDU.
-    pdu: [u8; 8],
+    pdu: [u8; PDU_MAX_LENGTH],
     /// PDU length.
     pdu_length: usize,
 }
@@ -202,7 +213,7 @@ impl Frame {
         Self {
             id,
             pdu,
-            pdu_length: 8,
+            pdu_length: PDU_MAX_LENGTH,
         }
     }
 
@@ -247,7 +258,7 @@ pub struct FrameBuilder {
     /// Frame ID.
     id: Id,
     /// PDU.
-    pdu: [u8; 8],
+    pdu: [u8; PDU_MAX_LENGTH],
     /// PDU length.
     pdu_length: usize,
 }
@@ -256,7 +267,7 @@ impl Default for FrameBuilder {
     fn default() -> Self {
         Self {
             id: Id::new(0),
-            pdu: [0xff; 8],
+            pdu: [0xff; PDU_MAX_LENGTH],
             pdu_length: 0,
         }
     }
@@ -308,7 +319,7 @@ impl AsMut<[u8]> for FrameBuilder {
 
 #[cfg(test)]
 mod tests {
-    use crate::{FrameBuilder, Id, IdBuilder, PDUFormat, PGN};
+    use crate::{FrameBuilder, Id, IdBuilder, PDUFormat, PDU_MAX_LENGTH, PGN};
 
     #[test]
     fn id_decode_1() {
@@ -428,12 +439,12 @@ mod tests {
                 .sa(0x10)
                 .build(),
         )
-        .copy_from_slice(&[0xff; 8])
+        .copy_from_slice(&[0xff; PDU_MAX_LENGTH])
         .build();
 
         assert_eq!(frame.id(), &Id::new(0xCEE0010));
-        assert_eq!(frame.pdu(), &[0xff; 8]);
-        assert_eq!(frame.len(), 8);
+        assert_eq!(frame.pdu(), &[0xff; PDU_MAX_LENGTH]);
+        assert_eq!(frame.len(), PDU_MAX_LENGTH);
         assert!(!frame.is_empty());
     }
 
@@ -462,7 +473,7 @@ mod tests {
 
         assert_eq!(frame.id(), &Id::new(0x18CA0000));
         assert_eq!(frame.pdu(), &[0x8, 0x7, 0x6, 0x5, 0x4, 0x3, 0x2, 0x1]);
-        assert_eq!(frame.len(), 8);
+        assert_eq!(frame.len(), PDU_MAX_LENGTH);
         assert!(!frame.is_empty());
     }
 
@@ -473,8 +484,8 @@ mod tests {
             .set_len(8)
             .build();
 
-        assert_eq!(frame.pdu(), &[0xff; 8]);
-        assert_eq!(frame.len(), 8);
+        assert_eq!(frame.pdu(), &[0xff; PDU_MAX_LENGTH]);
+        assert_eq!(frame.len(), PDU_MAX_LENGTH);
         assert!(!frame.is_empty());
     }
 }

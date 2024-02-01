@@ -1,7 +1,7 @@
 use crate::PDU_MAX_LENGTH;
 
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
-pub struct J1939Name {
+pub struct Name {
     /// Identity number.
     pub identity_number: u32,
     /// Manufacturer code.
@@ -22,7 +22,7 @@ pub struct J1939Name {
     pub arbitrary_address: bool,
 }
 
-impl J1939Name {
+impl Name {
     pub fn to_bytes(self) -> [u8; PDU_MAX_LENGTH] {
         let mut bytes = [0; PDU_MAX_LENGTH];
 
@@ -52,7 +52,7 @@ impl J1939Name {
         let industry_group = (bytes[7] >> 4) & 0x7;
         let arbitrary_address = bytes[7] >> 7;
 
-        J1939Name {
+        Name {
             identity_number,
             manufacturer_code,
             function_instance,
@@ -67,7 +67,7 @@ impl J1939Name {
 }
 
 #[derive(Default)]
-pub struct J1939NameBuilder {
+pub struct NameBuilder {
     identity_number: u32,
     manufacturer_code: u16,
     function_instance: u8,
@@ -79,7 +79,7 @@ pub struct J1939NameBuilder {
     arbitrary_address: bool,
 }
 
-impl J1939NameBuilder {
+impl NameBuilder {
     /// Set the identity number.
     #[inline]
     pub fn identity_number(mut self, identity_number: u32) -> Self {
@@ -144,8 +144,8 @@ impl J1939NameBuilder {
     }
 
     /// Construct name.
-    pub fn build(self) -> J1939Name {
-        J1939Name {
+    pub fn build(self) -> Name {
+        Name {
             identity_number: self.identity_number,
             manufacturer_code: self.manufacturer_code,
             function_instance: self.function_instance,
@@ -165,7 +165,7 @@ mod tests {
 
     #[test]
     fn test_name_to_name() {
-        let name = J1939NameBuilder::default()
+        let name = NameBuilder::default()
             .identity_number(0xB5D15)
             .manufacturer_code(0x623)
             .function_instance(30)
@@ -177,7 +177,7 @@ mod tests {
             .arbitrary_address(true)
             .build();
 
-        let name2 = J1939Name::from_bytes(name.to_bytes());
+        let name2 = Name::from_bytes(name.to_bytes());
 
         assert_eq!(name, name2);
         assert_eq!(name2.identity_number, 0xB5D15);
@@ -188,12 +188,12 @@ mod tests {
         assert_eq!(name2.vehicle_system, 126);
         assert_eq!(name2.vehicle_system_instance, 15);
         assert_eq!(name2.industry_group, 5);
-        assert_eq!(name2.arbitrary_address, true);
+        assert!(name2.arbitrary_address);
     }
 
     #[test]
     fn test_to_bytes() {
-        let name = J1939Name {
+        let name = Name {
             identity_number: 0xB0309,
             manufacturer_code: 0x122,
             function_instance: 0x2,
@@ -214,11 +214,11 @@ mod tests {
     fn test_from_bytes() {
         let bytes = [0x19, 0xA4, 0x49, 0x24, 0x11, 0x05, 0x06, 0x85];
 
-        let name = J1939Name::from_bytes(bytes);
+        let name = Name::from_bytes(bytes);
 
         assert_eq!(
             name,
-            J1939Name {
+            Name {
                 identity_number: 0x9A419,
                 manufacturer_code: 0x122,
                 function_instance: 0x2,

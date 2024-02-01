@@ -1,7 +1,12 @@
 #[derive(Debug, PartialEq, Eq)]
 pub enum SourceAddress {
     /// Engine 1.
-    Engine1, // 0x0
+    ///
+    /// The #1 on the Engine CA is to identify that this is the first PA being used
+    /// for the particular function, Engine. It may only be used for the NAME Function
+    /// of 0, Function Instance 0, and an ecu instance of 0, which is commonly know
+    /// as the “first engine”.
+    Engine1,
     /// Engine 2.
     Engine2, // 0x1
     /// Turbocharger.
@@ -79,9 +84,15 @@ pub enum SourceAddress {
     /// Virtual Terminal (in cab).
     VirtualTerminalInCab, // 0x26
     /// Management Computer #1.
-    ManagementComputer1, // 0x27
+    ///
+    /// The first Management Computer - may only be used for the NAME Function of
+    /// 30, Function Instance 0, and an ecu instance of 0.
+    ManagementComputer1,
     /// Cab Display #1.
-    CabDisplay1, // 0x28
+    ///
+    /// The first Cab Display - may only be used for the NAME Function of 60, Function
+    /// Instance 0, and an ecu instance of 0.
+    CabDisplay1,
     /// Retarder, Exhaust, Engine #1.
     RetarderExhaustEngine1, // 0x29
     /// Headway Controller.

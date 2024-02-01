@@ -8,8 +8,10 @@ pub mod decode;
 
 mod pgn;
 pub mod protocol;
+mod sa;
 
 pub use pgn::*;
+pub use sa::*;
 
 #[cfg(feature = "can")]
 pub mod can;
@@ -21,7 +23,6 @@ pub const PDU_MAX_LENGTH: usize = 8;
 
 /// ASCII delimiter for variable length fields.
 pub const FIELD_DELIMITER: u8 = b'*';
-
 
 /// Protocol Data Unit Format.
 ///

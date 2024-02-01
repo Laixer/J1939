@@ -1,3 +1,5 @@
+use crate::PGN_MAX_LENGTH;
+
 /// Parameter group number.
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum PGN {
@@ -82,13 +84,13 @@ pub enum PGN {
 }
 
 impl PGN {
-    pub fn to_le_bytes(self) -> [u8; 3] {
+    pub fn to_le_bytes(self) -> [u8; PGN_MAX_LENGTH] {
         let byte_array = u32::to_be_bytes(self.into());
 
         [byte_array[3], byte_array[2], byte_array[1]]
     }
 
-    pub fn from_le_bytes(bytes: [u8; 3]) -> Self {
+    pub fn from_le_bytes(bytes: [u8; PGN_MAX_LENGTH]) -> Self {
         let pgn = u32::from_be_bytes([0x0, bytes[2], bytes[1], bytes[0]]);
 
         PGN::from(pgn & 0x3ffff)

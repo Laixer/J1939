@@ -6,10 +6,12 @@
 // TODO: Make this a feature
 pub mod decode;
 
+mod name;
 mod pgn;
 pub mod protocol;
 mod sa;
 
+pub use name::*;
 pub use pgn::*;
 pub use sa::*;
 
@@ -267,7 +269,7 @@ impl AsRef<[u8]> for Frame {
 pub struct FrameBuilder {
     /// Frame ID.
     id: Id,
-    /// PDU.
+    /// Protocol Data Unit.
     pdu: [u8; PDU_MAX_LENGTH],
     /// PDU length.
     pdu_length: usize,

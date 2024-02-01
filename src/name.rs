@@ -201,7 +201,6 @@ mod tests {
             .function(0x5)
             .vehicle_system(0x6)
             .vehicle_system_instance(0x5)
-            .industry_group(0x0)
             .arbitrary_address(true)
             .build();
 
@@ -226,9 +225,24 @@ mod tests {
                 .function(0x5)
                 .vehicle_system(0x6)
                 .vehicle_system_instance(0x5)
-                .industry_group(0x0)
                 .arbitrary_address(true)
                 .build()
         );
+    }
+
+    #[test]
+    fn test_name_builder() {
+        let name = NameBuilder::default()
+            .identity_number(0x1)
+            .manufacturer_code(0x717)
+            .function_instance(1)
+            .ecu_instance(1)
+            .function(0x3A)
+            .vehicle_system(9)
+            .build();
+
+        let bytes = name.to_bytes();
+
+        assert_eq!(bytes, [0x01, 0x00, 0xE0, 0xE2, 0x09, 0x3A, 0x09, 0x00]);
     }
 }

@@ -33,14 +33,15 @@ impl J1939Name {
         bytes[4] = (self.function_instance << 3) | self.ecu_instance;
         bytes[5] = self.function;
         bytes[6] = self.vehicle_system;
-        bytes[7] = self.vehicle_system_instance | self.industry_group | self.arbitrary_address;
+        bytes[7] =
+            self.vehicle_system_instance | self.industry_group << 4 | (self.arbitrary_address << 7);
 
         bytes
     }
 
     pub fn from_bytes(bytes: [u8; PDU_MAX_LENGTH]) -> Self {
         let identity_number =
-            bytes[0] as u32 | ((bytes[1] as u32) << 8) | (((bytes[2] & 0b01001) as u32) << 16);
+            bytes[0] as u32 | ((bytes[1] as u32) << 8) | (((bytes[2] & 0b11111) as u32) << 16);
 
         let manufacturer_code = (bytes[2] >> 5) as u16 | ((bytes[3] as u16) << 3);
 
@@ -52,7 +53,7 @@ impl J1939Name {
         let vehicle_system = bytes[6] & 0b0111_1111;
 
         let vehicle_system_instance = bytes[7] & 0b1111;
-        let industry_group = bytes[7] & 0b0111_0000;
+        let industry_group = (bytes[7] >> 4) & 0b111;
         let arbitrary_address = bytes[7] >> 7;
 
         J1939Name {
@@ -69,9 +70,80 @@ impl J1939Name {
     }
 }
 
+pub struct J1939NameBuilder {
+    identity_number: u32,
+    manufacturer_code: u16,
+    function_instance: u8,
+    ecu_instance: u8,
+    function: u8,
+    vehicle_system: u8,
+    vehicle_system_instance: u8,
+    industry_group: u8,
+    arbitrary_address: u8,
+}
+
+impl J1939NameBuilder {
+    pub fn new(
+        identity_number: u32,
+        manufacturer_code: u16,
+        function_instance: u8,
+        ecu_instance: u8,
+        function: u8,
+        vehicle_system: u8,
+        vehicle_system_instance: u8,
+        industry_group: u8,
+        arbitrary_address: u8,
+    ) -> Self {
+        Self {
+            identity_number,
+            manufacturer_code,
+            function_instance,
+            ecu_instance,
+            function,
+            vehicle_system,
+            vehicle_system_instance,
+            industry_group,
+            arbitrary_address,
+        }
+    }
+
+    /// Construct name.
+    pub fn build(self) -> J1939Name {
+        J1939Name {
+            identity_number: self.identity_number & 0x1FFFFF,
+            manufacturer_code: self.manufacturer_code & 0x7FF,
+            function_instance: self.function_instance & 0x1F,
+            ecu_instance: self.ecu_instance & 0x7,
+            function: self.function,
+            vehicle_system: self.vehicle_system & 0x7F,
+            vehicle_system_instance: self.vehicle_system_instance & 0xF,
+            industry_group: self.industry_group & 0x7,
+            arbitrary_address: self.arbitrary_address & 0x1,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_name_to_name() {
+        let name = J1939NameBuilder::new(0xB5D15, 0x623, 30, 0x7, 0xE3, 126, 15, 5, 1).build();
+
+        let name2 = J1939Name::from_bytes(name.to_bytes());
+
+        assert_eq!(name, name2);
+        assert_eq!(name2.identity_number, 0xB5D15);
+        assert_eq!(name2.manufacturer_code, 0x623);
+        assert_eq!(name2.function_instance, 30);
+        assert_eq!(name2.ecu_instance, 0x7);
+        assert_eq!(name2.function, 0xE3);
+        assert_eq!(name2.vehicle_system, 126);
+        assert_eq!(name2.vehicle_system_instance, 15);
+        assert_eq!(name2.industry_group, 5);
+        assert_eq!(name2.arbitrary_address, 1);
+    }
 
     #[test]
     fn test_to_bytes() {
@@ -89,7 +161,7 @@ mod tests {
 
         let bytes = name.to_bytes();
 
-        assert_eq!(bytes, [0x09, 0x03, 0x4B, 0x24, 0x11, 0x05, 0x06, 0x05]);
+        assert_eq!(bytes, [0x09, 0x03, 0x4B, 0x24, 0x11, 0x05, 0x06, 0x85]);
     }
 
     #[test]

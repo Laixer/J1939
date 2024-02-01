@@ -2,6 +2,7 @@
 #![deny(warnings)]
 #![no_std]
 
+// TODO: Rename to SPN
 // TODO: Make this a feature
 pub mod decode;
 
@@ -13,7 +14,14 @@ pub use pgn::*;
 #[cfg(feature = "can")]
 pub mod can;
 
+/// Maximum number of bytes in a PGN.
+pub const PGN_MAX_LENGTH: usize = 3;
+/// Maximum number of bytes in a PDU.
 pub const PDU_MAX_LENGTH: usize = 8;
+
+/// ASCII delimiter for variable length fields.
+pub const FIELD_DELIMITER: u8 = b'*';
+
 
 /// Protocol Data Unit Format.
 ///
@@ -112,6 +120,7 @@ impl Id {
         ((self.0 >> 8) & 0xff).try_into().unwrap()
     }
 
+    // TODO: Return the source address enum.
     /// Device source address
     pub fn sa(&self) -> u8 {
         (self.0 & 0xff).try_into().unwrap()
@@ -280,6 +289,7 @@ impl FrameBuilder {
     }
 
     /// Set the frame ID.
+    #[inline]
     pub fn id(mut self, id: Id) -> Self {
         self.id = id;
         self
@@ -296,6 +306,7 @@ impl FrameBuilder {
     }
 
     /// Set PDU length.
+    #[inline]
     pub fn set_len(mut self, len: usize) -> Self {
         self.pdu_length = len;
         self

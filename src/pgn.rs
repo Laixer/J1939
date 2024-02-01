@@ -41,6 +41,8 @@ pub enum PGN {
     ElectronicEngineController1,
     /// EEC2 - Electronic Engine Controller 2.
     ElectronicEngineController2,
+    /// TCO1 - Tachoraph.
+    Tachoraph,
     /// SOFT - Software Identification.
     SoftwareIdentification,
     /// RQST - Request.
@@ -55,6 +57,10 @@ pub enum PGN {
     AddressClaimed,
     /// PropA - Proprietary A.
     ProprietaryA,
+    // EBC1 - Electronic Brake Controller 1.
+    ElectronicBrakeController1,
+    /// ETC1 - Transmission Message 1.
+    TransmissionMessage1,
     /// CA - Commanded Address.
     CommandedAddress,
     /// TD - Time / Date.
@@ -117,8 +123,11 @@ impl From<u32> for PGN {
             60_416 => PGN::TransportProtocolConnectionManagement,
             60_928 => PGN::AddressClaimed,
             61_184 => PGN::ProprietaryA,
+            61_441 => PGN::ElectronicBrakeController1,
+            61_442 => PGN::TransmissionMessage1,
             61_443 => PGN::ElectronicEngineController2,
             61_444 => PGN::ElectronicEngineController1,
+            65_132 => PGN::Tachoraph,
             65_240 => PGN::CommandedAddress,
             65_242 => PGN::SoftwareIdentification,
             65_254 => PGN::TimeDate,
@@ -160,8 +169,11 @@ impl From<PGN> for u32 {
             PGN::TransportProtocolConnectionManagement => 60_416,
             PGN::AddressClaimed => 60_928,
             PGN::ProprietaryA => 61_184,
+            PGN::ElectronicBrakeController1 => 61_441,
+            PGN::TransmissionMessage1 => 61_442,
             PGN::ElectronicEngineController1 => 61_444,
             PGN::ElectronicEngineController2 => 61_443,
+            PGN::Tachoraph => 65_132,
             PGN::CommandedAddress => 65_240,
             PGN::SoftwareIdentification => 65_242,
             PGN::TimeDate => 65_254,

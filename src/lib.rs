@@ -3,7 +3,6 @@
 #![no_std]
 
 // TODO: Rename to SPN
-// TODO: Make this a feature
 pub mod decode;
 
 mod name;

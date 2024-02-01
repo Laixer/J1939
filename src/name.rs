@@ -193,17 +193,17 @@ mod tests {
 
     #[test]
     fn test_to_bytes() {
-        let name = Name {
-            identity_number: 0xB0309,
-            manufacturer_code: 0x122,
-            function_instance: 0x2,
-            ecu_instance: 0x1,
-            function: 0x5,
-            vehicle_system: 0x6,
-            vehicle_system_instance: 0x5,
-            industry_group: 0x0,
-            arbitrary_address: true,
-        };
+        let name = NameBuilder::default()
+            .identity_number(0xB0309)
+            .manufacturer_code(0x122)
+            .function_instance(0x2)
+            .ecu_instance(0x1)
+            .function(0x5)
+            .vehicle_system(0x6)
+            .vehicle_system_instance(0x5)
+            .industry_group(0x0)
+            .arbitrary_address(true)
+            .build();
 
         let bytes = name.to_bytes();
 
@@ -218,17 +218,17 @@ mod tests {
 
         assert_eq!(
             name,
-            Name {
-                identity_number: 0x9A419,
-                manufacturer_code: 0x122,
-                function_instance: 0x2,
-                ecu_instance: 0x1,
-                function: 0x5,
-                vehicle_system: 0x6,
-                vehicle_system_instance: 0x5,
-                industry_group: 0,
-                arbitrary_address: true,
-            }
+            NameBuilder::default()
+                .identity_number(0x9A419)
+                .manufacturer_code(0x122)
+                .function_instance(0x2)
+                .ecu_instance(0x1)
+                .function(0x5)
+                .vehicle_system(0x6)
+                .vehicle_system_instance(0x5)
+                .industry_group(0x0)
+                .arbitrary_address(true)
+                .build()
         );
     }
 }

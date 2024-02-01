@@ -28,8 +28,8 @@ impl J1939Name {
 
         bytes[0] = self.identity_number as u8;
         bytes[1] = (self.identity_number >> 8) as u8;
-        bytes[2] = (self.identity_number >> 16) as u8;
-        bytes[3] = (self.manufacturer_code << 5) as u8;
+        bytes[2] = ((self.identity_number >> 16) as u8) | ((self.manufacturer_code << 5) as u8);
+        bytes[3] = (self.manufacturer_code >> 3) as u8;
         bytes[4] = (self.function_instance << 3) | self.ecu_instance;
         bytes[5] = self.function;
         bytes[6] = self.vehicle_system;
@@ -66,5 +66,51 @@ impl J1939Name {
             industry_group,
             arbitrary_address,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_to_bytes() {
+        let name = J1939Name {
+            identity_number: 0xB0309,
+            manufacturer_code: 0x122,
+            function_instance: 0x2,
+            ecu_instance: 0x1,
+            function: 0x5,
+            vehicle_system: 0x6,
+            vehicle_system_instance: 0x5,
+            industry_group: 0x0,
+            arbitrary_address: 0x1,
+        };
+
+        let bytes = name.to_bytes();
+
+        assert_eq!(bytes, [0x09, 0x03, 0x4B, 0x24, 0x11, 0x05, 0x06, 0x05]);
+    }
+
+    #[test]
+    fn test_from_bytes() {
+        let bytes = [0x19, 0xA4, 0x49, 0x24, 0x11, 0x05, 0x06, 0x85];
+
+        let name = J1939Name::from_bytes(bytes);
+
+        assert_eq!(
+            name,
+            J1939Name {
+                identity_number: 0x9A419,
+                manufacturer_code: 0x122,
+                function_instance: 0x2,
+                ecu_instance: 0x1,
+                function: 0x5,
+                vehicle_system: 0x6,
+                vehicle_system_instance: 0x5,
+                industry_group: 0,
+                arbitrary_address: 0x1,
+            }
+        );
     }
 }

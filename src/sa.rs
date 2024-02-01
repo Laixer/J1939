@@ -40,7 +40,9 @@ pub enum SourceAddress {
     /// Retarder - Driveline.
     RetarderDriveline, // 0x10
     /// Cruise Control.
-    CruiseControl, // 0x11
+    ///
+    /// Speed-based control.
+    CruiseControl,
     /// Fuel System.
     FuelSystem, // 0x12
     /// Steering Controller.

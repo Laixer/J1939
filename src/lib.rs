@@ -221,7 +221,7 @@ pub struct Frame {
 
 impl Frame {
     /// Construct new frame.
-    pub fn new(id: Id, pdu: [u8; 8]) -> Self {
+    pub fn new(id: Id, pdu: [u8; PDU_MAX_LENGTH]) -> Self {
         Self {
             id,
             pdu,

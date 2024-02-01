@@ -41,19 +41,14 @@ impl J1939Name {
 
     pub fn from_bytes(bytes: [u8; PDU_MAX_LENGTH]) -> Self {
         let identity_number =
-            bytes[0] as u32 | ((bytes[1] as u32) << 8) | (((bytes[2] & 0b11111) as u32) << 16);
-
+            bytes[0] as u32 | ((bytes[1] as u32) << 8) | (((bytes[2] & 0x1f) as u32) << 16);
         let manufacturer_code = (bytes[2] >> 5) as u16 | ((bytes[3] as u16) << 3);
-
         let function_instance = bytes[4] >> 3;
-        let ecu_instance = bytes[4] & 0b111;
-
+        let ecu_instance = bytes[4] & 0x7;
         let function = bytes[5];
-
-        let vehicle_system = bytes[6] & 0b0111_1111;
-
-        let vehicle_system_instance = bytes[7] & 0b1111;
-        let industry_group = (bytes[7] >> 4) & 0b111;
+        let vehicle_system = bytes[6] & 0x7f;
+        let vehicle_system_instance = bytes[7] & 0xf;
+        let industry_group = (bytes[7] >> 4) & 0x7;
         let arbitrary_address = bytes[7] >> 7;
 
         J1939Name {
@@ -110,13 +105,13 @@ impl J1939NameBuilder {
     /// Construct name.
     pub fn build(self) -> J1939Name {
         J1939Name {
-            identity_number: self.identity_number & 0x1FFFFF,
-            manufacturer_code: self.manufacturer_code & 0x7FF,
-            function_instance: self.function_instance & 0x1F,
+            identity_number: self.identity_number & 0x1fffff,
+            manufacturer_code: self.manufacturer_code & 0x7ff,
+            function_instance: self.function_instance & 0x1f,
             ecu_instance: self.ecu_instance & 0x7,
             function: self.function,
-            vehicle_system: self.vehicle_system & 0x7F,
-            vehicle_system_instance: self.vehicle_system_instance & 0xF,
+            vehicle_system: self.vehicle_system & 0x7f,
+            vehicle_system_instance: self.vehicle_system_instance & 0xf,
             industry_group: self.industry_group & 0x7,
             arbitrary_address: self.arbitrary_address & 0x1,
         }

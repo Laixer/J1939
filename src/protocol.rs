@@ -11,6 +11,11 @@ pub fn request(da: u8, pgn: PGN) -> Frame {
         .build()
 }
 
+/// Extract PGN from PDU.
+pub fn request_from_pdu(pdu: &[u8]) -> PGN {
+    PGN::from_le_bytes([pdu[0], pdu[1], pdu[2]])
+}
+
 /// Create address claimed frame.
 pub fn address_claimed(sa: u8, name: Name) -> Frame {
     let id = IdBuilder::from_pgn(PGN::AddressClaimed)

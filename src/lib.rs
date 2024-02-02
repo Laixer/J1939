@@ -22,6 +22,11 @@ pub const PGN_MAX_LENGTH: usize = 3;
 /// Maximum number of bytes in a PDU.
 pub const PDU_MAX_LENGTH: usize = 8;
 
+/// PDU error byte.
+pub const PDU_ERROR: u8 = 0xfe;
+/// PDU not available byte.
+pub const PDU_NOT_AVAILABLE: u8 = 0xff;
+
 /// ASCII delimiter for variable length fields.
 pub const FIELD_DELIMITER: u8 = b'*';
 
@@ -278,7 +283,7 @@ impl Default for FrameBuilder {
     fn default() -> Self {
         Self {
             id: Id::new(0),
-            pdu: [0xff; PDU_MAX_LENGTH],
+            pdu: [PDU_NOT_AVAILABLE; PDU_MAX_LENGTH],
             pdu_length: 0,
         }
     }
@@ -332,7 +337,7 @@ impl AsMut<[u8]> for FrameBuilder {
 
 #[cfg(test)]
 mod tests {
-    use crate::{FrameBuilder, Id, IdBuilder, PDUFormat, PDU_MAX_LENGTH, PGN};
+    use crate::{FrameBuilder, Id, IdBuilder, PDUFormat, PDU_MAX_LENGTH, PDU_NOT_AVAILABLE, PGN};
 
     #[test]
     fn id_decode_1() {
@@ -452,11 +457,11 @@ mod tests {
                 .sa(0x10)
                 .build(),
         )
-        .copy_from_slice(&[0xff; PDU_MAX_LENGTH])
+        .copy_from_slice(&[PDU_NOT_AVAILABLE; PDU_MAX_LENGTH])
         .build();
 
         assert_eq!(frame.id(), &Id::new(0xCEE0010));
-        assert_eq!(frame.pdu(), &[0xff; PDU_MAX_LENGTH]);
+        assert_eq!(frame.pdu(), &[PDU_NOT_AVAILABLE; PDU_MAX_LENGTH]);
         assert_eq!(frame.len(), PDU_MAX_LENGTH);
         assert!(!frame.is_empty());
     }
@@ -497,7 +502,7 @@ mod tests {
             .set_len(8)
             .build();
 
-        assert_eq!(frame.pdu(), &[0xff; PDU_MAX_LENGTH]);
+        assert_eq!(frame.pdu(), &[PDU_NOT_AVAILABLE; PDU_MAX_LENGTH]);
         assert_eq!(frame.len(), PDU_MAX_LENGTH);
         assert!(!frame.is_empty());
     }

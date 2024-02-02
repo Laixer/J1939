@@ -1,5 +1,7 @@
+use crate::PDU_NOT_AVAILABLE;
+
 pub fn spn190(value: &[u8; 2]) -> Option<u16> {
-    if value != &[0xff, 0xff] {
+    if value != &[PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE] {
         let rpm = (u16::from_le_bytes(*value) as f32 * 0.125) as u16;
         Some(rpm)
     } else {
@@ -8,7 +10,7 @@ pub fn spn190(value: &[u8; 2]) -> Option<u16> {
 }
 
 pub fn spn103(value: &[u8; 2]) -> Option<u16> {
-    if value != &[0xff, 0xff] {
+    if value != &[PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE] {
         Some(u16::from_le_bytes(*value) * 4)
     } else {
         None
@@ -16,7 +18,7 @@ pub fn spn103(value: &[u8; 2]) -> Option<u16> {
 }
 
 pub fn spn110(value: u8) -> Option<u8> {
-    if value != 0xff {
+    if value != PDU_NOT_AVAILABLE {
         Some(value - 40)
     } else {
         None
@@ -24,7 +26,7 @@ pub fn spn110(value: u8) -> Option<u8> {
 }
 
 pub fn spn174(value: u8) -> Option<u8> {
-    if value != 0xff {
+    if value != PDU_NOT_AVAILABLE {
         Some(value - 40)
     } else {
         None
@@ -33,7 +35,7 @@ pub fn spn174(value: u8) -> Option<u8> {
 
 // TODO: This is possibly wrong.
 pub fn spn157(value: &[u8; 2]) -> Option<u16> {
-    if value != &[0xff, 0xff] {
+    if value != &[PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE] {
         Some(u16::from_le_bytes(*value))
     } else {
         None
@@ -56,7 +58,7 @@ pub enum EngineStarterMode {
 }
 
 pub fn spn1675(value: u8) -> Option<EngineStarterMode> {
-    if value != 0xff {
+    if value != PDU_NOT_AVAILABLE {
         let mode = match value & 0b1111 {
             0b0000 => EngineStarterMode::StartNotRequested,
             0b0001 => EngineStarterMode::StarterActiveGearNotEngaged,
@@ -79,7 +81,7 @@ pub fn spn1675(value: u8) -> Option<EngineStarterMode> {
 }
 
 pub fn spn512(value: u8) -> Option<u8> {
-    if value != 0xff {
+    if value != PDU_NOT_AVAILABLE {
         Some(value - 125)
     } else {
         None
@@ -87,7 +89,7 @@ pub fn spn512(value: u8) -> Option<u8> {
 }
 
 pub fn spn513(value: u8) -> Option<u8> {
-    if value != 0xff {
+    if value != PDU_NOT_AVAILABLE {
         Some(value - 125)
     } else {
         None
@@ -95,7 +97,7 @@ pub fn spn513(value: u8) -> Option<u8> {
 }
 
 pub fn spn514(value: u8) -> Option<u8> {
-    if value != 0xff {
+    if value != PDU_NOT_AVAILABLE {
         Some(value - 125)
     } else {
         None
@@ -103,7 +105,7 @@ pub fn spn514(value: u8) -> Option<u8> {
 }
 
 pub fn spn515(value: &[u8; 2]) -> Option<u16> {
-    if value != &[0xff, 0xff] {
+    if value != &[PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE] {
         let speed = (u16::from_le_bytes(*value) as f32 * 0.125) as u16;
         Some(speed)
     } else {
@@ -112,7 +114,7 @@ pub fn spn515(value: &[u8; 2]) -> Option<u16> {
 }
 
 pub fn spn519(value: u8) -> Option<u8> {
-    if value != 0xff {
+    if value != PDU_NOT_AVAILABLE {
         Some(value)
     } else {
         None
@@ -120,7 +122,7 @@ pub fn spn519(value: u8) -> Option<u8> {
 }
 
 pub fn spn975(value: u8) -> Option<f32> {
-    if value != 0xff {
+    if value != PDU_NOT_AVAILABLE {
         Some(value as f32 * 0.4)
     } else {
         None
@@ -128,7 +130,7 @@ pub fn spn975(value: u8) -> Option<f32> {
 }
 
 pub fn spn1127(value: &[u8; 2]) -> Option<u16> {
-    if value != &[0xff, 0xff] {
+    if value != &[PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE] {
         let pressure = (u16::from_le_bytes(*value) as f32 * 0.125) as u16;
         Some(pressure)
     } else {
@@ -149,7 +151,7 @@ pub fn spn1130(value: &[u8; 2]) -> Option<u16> {
 }
 
 pub fn spn1483(value: u8) -> Option<u8> {
-    if value != 0xff {
+    if value != PDU_NOT_AVAILABLE {
         Some(value)
     } else {
         None
@@ -174,7 +176,7 @@ pub enum EngineTorqueMode {
 }
 
 pub fn spn899(value: u8) -> Option<EngineTorqueMode> {
-    if value != 0xff {
+    if value != PDU_NOT_AVAILABLE {
         let mode = match value & 0b1111 {
             0b0000 => EngineTorqueMode::NoRequest,
             0b0001 => EngineTorqueMode::AcceleratorPedal,
@@ -199,7 +201,7 @@ pub fn spn899(value: u8) -> Option<EngineTorqueMode> {
 }
 
 pub fn spn959(value: u8) -> Option<u8> {
-    if value != 0xff {
+    if value != PDU_NOT_AVAILABLE {
         Some((value as f32 * 0.25) as u8)
     } else {
         None
@@ -207,7 +209,7 @@ pub fn spn959(value: u8) -> Option<u8> {
 }
 
 pub fn spn960(value: u8) -> Option<u8> {
-    if value != 0xff {
+    if value != PDU_NOT_AVAILABLE {
         Some(value)
     } else {
         None
@@ -215,7 +217,7 @@ pub fn spn960(value: u8) -> Option<u8> {
 }
 
 pub fn spn961(value: u8) -> Option<u8> {
-    if value != 0xff {
+    if value != PDU_NOT_AVAILABLE {
         Some(value)
     } else {
         None
@@ -223,7 +225,7 @@ pub fn spn961(value: u8) -> Option<u8> {
 }
 
 pub fn spn963(value: u8) -> Option<u8> {
-    if value != 0xff {
+    if value != PDU_NOT_AVAILABLE {
         Some(value)
     } else {
         None
@@ -231,7 +233,7 @@ pub fn spn963(value: u8) -> Option<u8> {
 }
 
 pub fn spn962(value: u8) -> Option<u8> {
-    if value != 0xff {
+    if value != PDU_NOT_AVAILABLE {
         Some((value as f32 * 0.25) as u8)
     } else {
         None
@@ -239,7 +241,7 @@ pub fn spn962(value: u8) -> Option<u8> {
 }
 
 pub fn spn964(value: u8) -> Option<u16> {
-    if value != 0xff {
+    if value != PDU_NOT_AVAILABLE {
         Some(value as u16 + 1985)
     } else {
         None
@@ -247,7 +249,7 @@ pub fn spn964(value: u8) -> Option<u16> {
 }
 
 pub fn spn1601(value: u8) -> Option<u8> {
-    if value != 0xff {
+    if value != PDU_NOT_AVAILABLE {
         Some(value - 125)
     } else {
         None
@@ -255,7 +257,7 @@ pub fn spn1601(value: u8) -> Option<u8> {
 }
 
 pub fn spn1602(value: u8) -> Option<u8> {
-    if value != 0xff {
+    if value != PDU_NOT_AVAILABLE {
         Some(value - 125)
     } else {
         None

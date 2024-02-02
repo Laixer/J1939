@@ -1,4 +1,4 @@
-use crate::{Frame, FrameBuilder, IdBuilder, Name, PGN};
+use crate::{Frame, FrameBuilder, IdBuilder, Name, PDU_NOT_AVAILABLE, PGN};
 
 /// Create PGN request frame.
 pub fn request(da: u8, pgn: PGN) -> Frame {
@@ -35,10 +35,10 @@ pub fn acknowledgement(sa: u8, pgn: PGN) -> Frame {
     FrameBuilder::new(id)
         .copy_from_slice(&[
             0x01,
-            0xff,
-            0xff,
-            0xff,
-            0xff,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
             pgn_bytes[0],
             pgn_bytes[1],
             pgn_bytes[2],

@@ -43,6 +43,78 @@ pub fn spn157(value: &[u8; 2]) -> Option<u16> {
 }
 
 #[derive(Debug, PartialEq, Eq)]
+pub enum OverrideControlMode {
+    OverrideDisabled,
+    SpeedControl,
+    TorqueControl,
+    SpeedTorqueLimitControl,
+}
+
+pub fn spn695(value: u8) -> Option<OverrideControlMode> {
+    if value != PDU_NOT_AVAILABLE {
+        let mode = match value & 0b11 {
+            0b00 => OverrideControlMode::OverrideDisabled,
+            0b01 => OverrideControlMode::SpeedControl,
+            0b10 => OverrideControlMode::TorqueControl,
+            0b11 => OverrideControlMode::SpeedTorqueLimitControl,
+            _ => unreachable!(),
+        };
+
+        Some(mode)
+    } else {
+        None
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum RequestedSpeedControlCondition {
+    TransientOptimizedDriveLineDisengaged,
+    StabilityOptimizedDriveLineDisengaged,
+    StabilityOptimizedDriveLineEngaged1,
+    StabilityOptimizedDriveLineEngaged2,
+}
+
+pub fn spn696(value: u8) -> Option<RequestedSpeedControlCondition> {
+    if value != PDU_NOT_AVAILABLE {
+        let condition = match value & 0b11 {
+            0b00 => RequestedSpeedControlCondition::TransientOptimizedDriveLineDisengaged,
+            0b01 => RequestedSpeedControlCondition::StabilityOptimizedDriveLineDisengaged,
+            0b10 => RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged1,
+            0b11 => RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged2,
+            _ => unreachable!(),
+        };
+
+        Some(condition)
+    } else {
+        None
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum OverrideControlModePriority {
+    HighestPriority,
+    HighPriority,
+    MediumPriority,
+    LowPriority,
+}
+
+pub fn spn897(value: u8) -> Option<OverrideControlModePriority> {
+    if value != PDU_NOT_AVAILABLE {
+        let priority = match value & 0b11 {
+            0b00 => OverrideControlModePriority::HighestPriority,
+            0b01 => OverrideControlModePriority::HighPriority,
+            0b10 => OverrideControlModePriority::MediumPriority,
+            0b11 => OverrideControlModePriority::LowPriority,
+            _ => unreachable!(),
+        };
+
+        Some(priority)
+    } else {
+        None
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
 pub enum EngineStarterMode {
     StartNotRequested,
     StarterActiveGearNotEngaged,

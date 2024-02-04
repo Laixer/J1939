@@ -307,15 +307,16 @@ impl FrameBuilder {
     /// A runtime error will occur if the source slice is
     /// larger than the PDU.
     pub fn copy_from_slice(mut self, src: &[u8]) -> Self {
-        self.pdu[..src.len()].copy_from_slice(src);
-        self.pdu_length = src.len();
+        let pdu_length = src.len().min(PDU_MAX_LENGTH);
+        self.pdu[..pdu_length].copy_from_slice(src);
+        self.pdu_length = pdu_length;
         self
     }
 
     /// Set PDU length.
     #[inline]
     pub fn set_len(mut self, len: usize) -> Self {
-        self.pdu_length = len;
+        self.pdu_length = len.min(PDU_MAX_LENGTH);
         self
     }
 

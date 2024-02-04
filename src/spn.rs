@@ -13,3 +13,19 @@ pub mod byte {
         }
     }
 }
+
+pub mod rpm {
+    use crate::PDU_NOT_AVAILABLE;
+
+    pub fn enc(value: u16) -> [u8; 2] {
+        (value * 8).to_le_bytes()
+    }
+
+    pub fn dec(value: &[u8]) -> Option<u16> {
+        if value != [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE] {
+            Some((u16::from_le_bytes([value[0], value[1]]) as f32 * 0.125) as u16)
+        } else {
+            None
+        }
+    }
+}

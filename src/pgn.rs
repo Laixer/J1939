@@ -45,8 +45,12 @@ pub enum PGN {
     ElectronicEngineController2,
     /// TCO1 - Tachoraph.
     Tachoraph,
+    /// EH - ECU History.
+    ECUHistory,
     /// SOFT - Software Identification.
     SoftwareIdentification,
+    /// IO - Idle Operation.
+    IdleOperation,
     /// RQST - Request.
     Request,
     /// RQST2 - Request 2.
@@ -130,8 +134,10 @@ impl From<u32> for PGN {
             61_443 => PGN::ElectronicEngineController2,
             61_444 => PGN::ElectronicEngineController1,
             65_132 => PGN::Tachoraph,
+            65_201 => PGN::ECUHistory,
             65_240 => PGN::CommandedAddress,
             65_242 => PGN::SoftwareIdentification,
+            65_244 => PGN::IdleOperation,
             65_254 => PGN::TimeDate,
             65_259 => PGN::ComponentIdentification,
             65_260 => PGN::VehicleIdentification,
@@ -176,8 +182,10 @@ impl From<PGN> for u32 {
             PGN::ElectronicEngineController1 => 61_444,
             PGN::ElectronicEngineController2 => 61_443,
             PGN::Tachoraph => 65_132,
+            PGN::ECUHistory => 65_201,
             PGN::CommandedAddress => 65_240,
             PGN::SoftwareIdentification => 65_242,
+            PGN::IdleOperation => 65_244,
             PGN::TimeDate => 65_254,
             PGN::ComponentIdentification => 65_259,
             PGN::VehicleIdentification => 65_260,

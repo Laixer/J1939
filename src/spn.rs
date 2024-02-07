@@ -56,4 +56,17 @@ impl TimeDate {
             second: (pdu[0] as f32 * 0.25) as u32,
         }
     }
+
+    pub fn to_pdu(&self) -> [u8; 8] {
+        [
+            (self.second * 4) as u8,
+            self.minute as u8,
+            self.hour as u8,
+            self.month as u8,
+            (self.day * 4) as u8,
+            (self.year - 1985) as u8,
+            0xff,
+            0xff,
+        ]
+    }
 }

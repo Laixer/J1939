@@ -272,60 +272,6 @@ pub fn spn899(value: u8) -> Option<EngineTorqueMode> {
     }
 }
 
-// TODO: Remove this.
-pub fn spn959(value: u8) -> Option<u8> {
-    if value != PDU_NOT_AVAILABLE {
-        Some((value as f32 * 0.25) as u8)
-    } else {
-        None
-    }
-}
-
-// TODO: Remove this.
-pub fn spn960(value: u8) -> Option<u8> {
-    if value != PDU_NOT_AVAILABLE {
-        Some(value)
-    } else {
-        None
-    }
-}
-
-// TODO: Remove this.
-pub fn spn961(value: u8) -> Option<u8> {
-    if value != PDU_NOT_AVAILABLE {
-        Some(value)
-    } else {
-        None
-    }
-}
-
-// TODO: Remove this.
-pub fn spn963(value: u8) -> Option<u8> {
-    if value != PDU_NOT_AVAILABLE {
-        Some(value)
-    } else {
-        None
-    }
-}
-
-// TODO: Remove this.
-pub fn spn962(value: u8) -> Option<u8> {
-    if value != PDU_NOT_AVAILABLE {
-        Some((value as f32 * 0.25) as u8)
-    } else {
-        None
-    }
-}
-
-// TODO: Remove this.
-pub fn spn964(value: u8) -> Option<u16> {
-    if value != PDU_NOT_AVAILABLE {
-        Some(value as u16 + 1985)
-    } else {
-        None
-    }
-}
-
 pub fn spn1601(value: u8) -> Option<u8> {
     if value != PDU_NOT_AVAILABLE {
         Some(value - 125)

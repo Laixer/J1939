@@ -29,3 +29,31 @@ pub mod rpm {
         }
     }
 }
+
+pub struct TimeDate {
+    /// Year.
+    pub year: i32,
+    /// Month.
+    pub month: u32,
+    /// Day.
+    pub day: u32,
+    /// Hour.
+    pub hour: u32,
+    /// Minute.
+    pub minute: u32,
+    /// Second.
+    pub second: u32,
+}
+
+impl TimeDate {
+    pub fn from_pdu(pdu: &[u8; 8]) -> Self {
+        Self {
+            year: crate::decode::spn964(pdu[5]).unwrap_or(0) as i32,
+            month: crate::decode::spn963(pdu[3]).unwrap_or(0) as u32,
+            day: crate::decode::spn962(pdu[4]).unwrap_or(0) as u32,
+            hour: crate::decode::spn961(pdu[2]).unwrap_or(0) as u32,
+            minute: crate::decode::spn960(pdu[1]).unwrap_or(0) as u32,
+            second: crate::decode::spn959(pdu[0]).unwrap_or(0) as u32,
+        }
+    }
+}

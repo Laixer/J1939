@@ -165,3 +165,46 @@ impl TorqueSpeedControlMessage {
         ]
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::decode::{EngineStarterMode, EngineTorqueMode};
+
+    use super::*;
+
+    #[test]
+    fn turn_on() {
+        let engine_message =
+            EngineControllerMessage::from_pdu(&[0xF0, 0xEA, 0x7D, 0x00, 0x00, 0x00, 0xF0, 0xFF]);
+        assert_eq!(
+            engine_message.engine_torque_mode.unwrap(),
+            EngineTorqueMode::NoRequest
+        );
+        assert_eq!(engine_message.driver_demand.unwrap(), 109);
+        assert_eq!(engine_message.actual_engine.unwrap(), 0);
+        assert_eq!(engine_message.rpm.unwrap(), 0);
+        assert_eq!(engine_message.source_addr.unwrap(), 0);
+        assert_eq!(
+            engine_message.starter_mode.unwrap(),
+            EngineStarterMode::StartNotRequested
+        );
+    }
+
+    #[test]
+    fn turn_off() {
+        let engine_message =
+            EngineControllerMessage::from_pdu(&[0xF3, 0x91, 0x91, 0xAA, 0x18, 0x00, 0xF3, 0xFF]);
+        assert_eq!(
+            engine_message.engine_torque_mode.unwrap(),
+            EngineTorqueMode::PTOGovernor
+        );
+        assert_eq!(engine_message.driver_demand.unwrap(), 20);
+        assert_eq!(engine_message.actual_engine.unwrap(), 20);
+        assert_eq!(engine_message.rpm.unwrap(), 789);
+        assert_eq!(engine_message.source_addr.unwrap(), 0);
+        assert_eq!(
+            engine_message.starter_mode.unwrap(),
+            EngineStarterMode::StartFinished
+        );
+    }
+}

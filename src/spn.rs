@@ -122,15 +122,15 @@ impl core::fmt::Display for EngineControllerMessage {
 #[allow(dead_code)]
 pub struct TorqueSpeedControlMessage {
     /// Override control mode - SPN 695
-    override_control_mode: Option<crate::decode::OverrideControlMode>,
+    pub override_control_mode: Option<crate::decode::OverrideControlMode>,
     /// Requested speed control conditions - SPN 696
-    speed_control_condition: Option<crate::decode::RequestedSpeedControlCondition>,
+    pub speed_control_condition: Option<crate::decode::RequestedSpeedControlCondition>,
     /// Override control mode priority - SPN 897
-    control_mode_priority: Option<crate::decode::OverrideControlModePriority>,
+    pub control_mode_priority: Option<crate::decode::OverrideControlModePriority>,
     /// Requested speed or speed limit - SPN 898
-    speed: Option<u16>,
+    pub speed: Option<u16>,
     /// Requested torque or torque limit - SPN 518
-    torque: Option<u8>,
+    pub torque: Option<u8>,
 }
 
 impl TorqueSpeedControlMessage {

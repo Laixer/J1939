@@ -118,3 +118,50 @@ impl core::fmt::Display for EngineControllerMessage {
         write!(f, "EngineControllerMessage")
     }
 }
+
+#[allow(dead_code)]
+pub struct TorqueSpeedControlMessage {
+    /// Override control mode - SPN 695
+    override_control_mode: Option<crate::decode::OverrideControlMode>,
+    /// Requested speed control conditions - SPN 696
+    speed_control_condition: Option<crate::decode::RequestedSpeedControlCondition>,
+    /// Override control mode priority - SPN 897
+    control_mode_priority: Option<crate::decode::OverrideControlModePriority>,
+    /// Requested speed or speed limit - SPN 898
+    speed: Option<u16>,
+    /// Requested torque or torque limit - SPN 518
+    torque: Option<u8>,
+}
+
+impl TorqueSpeedControlMessage {
+    pub fn from_pdu(pdu: &[u8]) -> Self {
+        Self {
+            override_control_mode: crate::decode::spn695(pdu[0]),
+            speed_control_condition: None, // TODO: Add SPN 696
+            control_mode_priority: None,   // TODO: Add SPN 897
+            speed: rpm::dec(&pdu[1..3]),
+            torque: if pdu[3] != 0xff { Some(pdu[3]) } else { None },
+        }
+    }
+
+    pub fn to_pdu(&self) -> [u8; 8] {
+        let override_control_mode = match self.override_control_mode {
+            Some(crate::decode::OverrideControlMode::OverrideDisabled) => 0b00,
+            Some(crate::decode::OverrideControlMode::SpeedControl) => 0b01,
+            Some(crate::decode::OverrideControlMode::TorqueControl) => 0b10,
+            Some(crate::decode::OverrideControlMode::SpeedTorqueLimitControl) => 0b11,
+            None => 0b00,
+        };
+
+        [
+            override_control_mode,
+            self.speed.map_or(0xff, |speed| rpm::enc(speed)[0]),
+            self.speed.map_or(0xff, |speed| rpm::enc(speed)[1]),
+            self.torque.unwrap_or(0xff),
+            0xff,
+            0xff,
+            0xff,
+            0xff,
+        ]
+    }
+}

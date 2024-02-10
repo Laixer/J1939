@@ -65,8 +65,56 @@ impl TimeDate {
             self.month as u8,
             (self.day * 4) as u8,
             (self.year - 1985) as u8,
+            0xff, // TODO: Add timezone
+            0xff, // TODO: Add timezone
+        ]
+    }
+}
+
+pub struct EngineControllerMessage {
+    /// Engine Torque Mode.
+    pub engine_torque_mode: Option<crate::decode::EngineTorqueMode>,
+    /// Driver's Demand Engine - Percent Torque.
+    pub driver_demand: Option<u8>,
+    /// Actual Engine - Percent Torque.
+    pub actual_engine: Option<u8>,
+    /// Engine Speed.
+    pub rpm: Option<u16>,
+    /// Source Address of Controlling Device for Engine Control.
+    pub source_addr: Option<u8>,
+    /// Engine Starter Mode.
+    pub starter_mode: Option<crate::decode::EngineStarterMode>,
+}
+
+impl EngineControllerMessage {
+    pub fn from_pdu(pdu: &[u8]) -> Self {
+        Self {
+            engine_torque_mode: crate::decode::spn899(pdu[0]),
+            driver_demand: byte::dec(pdu[1]),
+            actual_engine: byte::dec(pdu[2]),
+            rpm: rpm::dec(&pdu[3..5]),
+            source_addr: crate::decode::spn1483(pdu[5]),
+            starter_mode: crate::decode::spn1675(pdu[6]),
+        }
+    }
+
+    pub fn to_pdu(&self) -> [u8; 8] {
+        [
+            0xff, // TODO: Add engine torque mode
+            self.driver_demand.map_or(0xff, byte::enc),
+            self.actual_engine.map_or(0xff, byte::enc),
+            self.rpm.map_or([0xff, 0xff], rpm::enc)[0],
+            self.rpm.map_or([0xff, 0xff], rpm::enc)[1],
+            self.source_addr.unwrap_or(0xff),
             0xff,
             0xff,
         ]
+    }
+}
+
+impl core::fmt::Display for EngineControllerMessage {
+    // TODO: Implement Display
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "EngineControllerMessage")
     }
 }

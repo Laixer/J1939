@@ -72,7 +72,7 @@ impl TimeDate {
 }
 
 pub struct EngineControllerMessage {
-    /// Engine Torque Mode.
+    /// Engine Torque Mode - SPN 899.
     pub engine_torque_mode: Option<crate::decode::EngineTorqueMode>,
     /// Driver's Demand Engine - Percent Torque.
     pub driver_demand: Option<u8>,
@@ -80,9 +80,9 @@ pub struct EngineControllerMessage {
     pub actual_engine: Option<u8>,
     /// Engine Speed.
     pub rpm: Option<u16>,
-    /// Source Address of Controlling Device for Engine Control.
+    /// Source Address of Controlling Device for Engine Control - SPN 1483.
     pub source_addr: Option<u8>,
-    /// Engine Starter Mode.
+    /// Engine Starter Mode - SPN 1675.
     pub starter_mode: Option<crate::decode::EngineStarterMode>,
 }
 
@@ -99,14 +99,46 @@ impl EngineControllerMessage {
     }
 
     pub fn to_pdu(&self) -> [u8; 8] {
+        let engine_torque_mode = match self.engine_torque_mode {
+            Some(crate::decode::EngineTorqueMode::NoRequest) => 0b0000,
+            Some(crate::decode::EngineTorqueMode::AcceleratorPedal) => 0b0001,
+            Some(crate::decode::EngineTorqueMode::CruiseControl) => 0b0010,
+            Some(crate::decode::EngineTorqueMode::PTOGovernor) => 0b0011,
+            Some(crate::decode::EngineTorqueMode::RoadSpeedGovernor) => 0b0100,
+            Some(crate::decode::EngineTorqueMode::ASRControl) => 0b0101,
+            Some(crate::decode::EngineTorqueMode::TransmissionControl) => 0b0110,
+            Some(crate::decode::EngineTorqueMode::ABSControl) => 0b0111,
+            Some(crate::decode::EngineTorqueMode::TorqueLimiting) => 0b1000,
+            Some(crate::decode::EngineTorqueMode::HighSpeedGovernor) => 0b1001,
+            Some(crate::decode::EngineTorqueMode::BrakingSystem) => 0b1010,
+            Some(crate::decode::EngineTorqueMode::RemoteAccelerator) => 0b1011,
+            Some(crate::decode::EngineTorqueMode::Other) => 0b1111,
+            None => 0b1111,
+        };
+
+        let starter_mode = match self.starter_mode {
+            Some(crate::decode::EngineStarterMode::StartNotRequested) => 0b0000,
+            Some(crate::decode::EngineStarterMode::StarterActiveGearNotEngaged) => 0b0001,
+            Some(crate::decode::EngineStarterMode::StarterActiveGearEngaged) => 0b0010,
+            Some(crate::decode::EngineStarterMode::StartFinished) => 0b0011,
+            Some(crate::decode::EngineStarterMode::StarterInhibitedEngineRunning) => 0b0100,
+            Some(crate::decode::EngineStarterMode::StarterInhibitedEngineNotReady) => 0b0101,
+            Some(crate::decode::EngineStarterMode::StarterInhibitedTransmissionInhibited) => 0b0110,
+            Some(crate::decode::EngineStarterMode::StarterInhibitedActiveImmobilizer) => 0b0111,
+            Some(crate::decode::EngineStarterMode::StarterInhibitedOverHeat) => 0b1000,
+            Some(crate::decode::EngineStarterMode::StarterInhibitedReasonUnknown) => 0b1100,
+            Some(crate::decode::EngineStarterMode::Error) => 0b1101,
+            None => 0b1111,
+        };
+
         [
-            0xff, // TODO: Add engine torque mode
+            engine_torque_mode,
             self.driver_demand.map_or(0xff, byte::enc),
             self.actual_engine.map_or(0xff, byte::enc),
             self.rpm.map_or([0xff, 0xff], rpm::enc)[0],
             self.rpm.map_or([0xff, 0xff], rpm::enc)[1],
             self.source_addr.unwrap_or(0xff),
-            0xff,
+            starter_mode,
             0xff,
         ]
     }
@@ -154,7 +186,7 @@ impl TorqueSpeedControlMessage {
         };
 
         [
-            override_control_mode,
+            override_control_mode, // TODO: Incomplete, add speed_control_condition, control_mode_priority
             self.speed.map_or(0xff, |speed| rpm::enc(speed)[0]),
             self.speed.map_or(0xff, |speed| rpm::enc(speed)[1]),
             self.torque.unwrap_or(0xff),
@@ -173,38 +205,65 @@ mod tests {
     use super::*;
 
     #[test]
-    fn turn_on() {
+    fn engine_controller_message_1() {
         let engine_message =
             EngineControllerMessage::from_pdu(&[0xF0, 0xEA, 0x7D, 0x00, 0x00, 0x00, 0xF0, 0xFF]);
         assert_eq!(
-            engine_message.engine_torque_mode.unwrap(),
-            EngineTorqueMode::NoRequest
+            engine_message.engine_torque_mode,
+            Some(EngineTorqueMode::NoRequest)
         );
-        assert_eq!(engine_message.driver_demand.unwrap(), 109);
-        assert_eq!(engine_message.actual_engine.unwrap(), 0);
-        assert_eq!(engine_message.rpm.unwrap(), 0);
-        assert_eq!(engine_message.source_addr.unwrap(), 0);
+        assert_eq!(engine_message.driver_demand, Some(109));
+        assert_eq!(engine_message.actual_engine, Some(0));
+        assert_eq!(engine_message.rpm, Some(0));
+        assert_eq!(engine_message.source_addr, Some(0));
         assert_eq!(
-            engine_message.starter_mode.unwrap(),
-            EngineStarterMode::StartNotRequested
+            engine_message.starter_mode,
+            Some(EngineStarterMode::StartNotRequested)
         );
     }
 
     #[test]
-    fn turn_off() {
+    fn engine_controller_message_2() {
         let engine_message =
             EngineControllerMessage::from_pdu(&[0xF3, 0x91, 0x91, 0xAA, 0x18, 0x00, 0xF3, 0xFF]);
         assert_eq!(
-            engine_message.engine_torque_mode.unwrap(),
-            EngineTorqueMode::PTOGovernor
+            engine_message.engine_torque_mode,
+            Some(EngineTorqueMode::PTOGovernor)
         );
-        assert_eq!(engine_message.driver_demand.unwrap(), 20);
-        assert_eq!(engine_message.actual_engine.unwrap(), 20);
-        assert_eq!(engine_message.rpm.unwrap(), 789);
-        assert_eq!(engine_message.source_addr.unwrap(), 0);
+        assert_eq!(engine_message.driver_demand, Some(20));
+        assert_eq!(engine_message.actual_engine, Some(20));
+        assert_eq!(engine_message.rpm, Some(789));
+        assert_eq!(engine_message.source_addr, Some(0));
         assert_eq!(
-            engine_message.starter_mode.unwrap(),
-            EngineStarterMode::StartFinished
+            engine_message.starter_mode,
+            Some(EngineStarterMode::StartFinished)
+        );
+    }
+
+    #[test]
+    fn engine_controller_message_3() {
+        let engine_message_encoded = EngineControllerMessage {
+            engine_torque_mode: Some(EngineTorqueMode::HighSpeedGovernor),
+            driver_demand: Some(93),
+            actual_engine: Some(4),
+            rpm: Some(2156),
+            source_addr: Some(21),
+            starter_mode: Some(EngineStarterMode::StarterInhibitedOverHeat),
+        }
+        .to_pdu();
+        let engine_message_decoded = EngineControllerMessage::from_pdu(&engine_message_encoded);
+
+        assert_eq!(
+            engine_message_decoded.engine_torque_mode,
+            Some(EngineTorqueMode::HighSpeedGovernor)
+        );
+        assert_eq!(engine_message_decoded.driver_demand, Some(93));
+        assert_eq!(engine_message_decoded.actual_engine, Some(4));
+        assert_eq!(engine_message_decoded.rpm, Some(2156));
+        assert_eq!(engine_message_decoded.source_addr, Some(21));
+        assert_eq!(
+            engine_message_decoded.starter_mode,
+            Some(EngineStarterMode::StarterInhibitedOverHeat)
         );
     }
 }

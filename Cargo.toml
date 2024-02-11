@@ -1,14 +1,21 @@
 [package]
 name = "j1939"
-version = "0.1.13"
+version = "0.1.14"
 authors = ["Laixer Equipment B.V. <info@laixer.com>"]
 edition = "2021"
 repository = "https://github.com/Laixer/J1939"
 description = """
 SAE J1939 is a set of standards that define how ECUs communicate via the CAN bus in heavy-duty vehicles.
 """
-categories = ["can", "network"]
-keywords = ["can", "j1939", "sae-j1939", "can-bus"]
+categories = ["no-std", "embedded", "parsing"]
+keywords = [
+    "can",
+    "j1939",
+    "sae-j1939",
+    "can-bus",
+    "embedded",
+    "network"
+]
 license = "GPL-3.0"
 
 [features]

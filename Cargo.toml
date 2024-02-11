@@ -13,7 +13,6 @@ keywords = [
     "j1939",
     "sae-j1939",
     "can-bus",
-    "embedded",
     "network"
 ]
 license = "GPL-3.0"

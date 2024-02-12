@@ -1,3 +1,5 @@
+use crate::PDU_NOT_AVAILABLE;
+
 pub mod byte {
     use crate::PDU_NOT_AVAILABLE;
 
@@ -133,13 +135,13 @@ impl EngineControllerMessage {
 
         [
             engine_torque_mode,
-            self.driver_demand.map_or(0xff, byte::enc),
-            self.actual_engine.map_or(0xff, byte::enc),
+            self.driver_demand.map_or(PDU_NOT_AVAILABLE, byte::enc),
+            self.actual_engine.map_or(PDU_NOT_AVAILABLE, byte::enc),
             self.rpm.map_or([0xff, 0xff], rpm::enc)[0],
             self.rpm.map_or([0xff, 0xff], rpm::enc)[1],
-            self.source_addr.unwrap_or(0xff),
+            self.source_addr.unwrap_or(PDU_NOT_AVAILABLE),
             starter_mode,
-            0xff,
+            PDU_NOT_AVAILABLE,
         ]
     }
 }
@@ -172,7 +174,11 @@ impl TorqueSpeedControlMessage {
             speed_control_condition: None, // TODO: Add SPN 696
             control_mode_priority: None,   // TODO: Add SPN 897
             speed: rpm::dec(&pdu[1..3]),
-            torque: if pdu[3] != 0xff { Some(pdu[3]) } else { None },
+            torque: if pdu[3] != PDU_NOT_AVAILABLE {
+                Some(pdu[3])
+            } else {
+                None
+            },
         }
     }
 
@@ -187,13 +193,15 @@ impl TorqueSpeedControlMessage {
 
         [
             override_control_mode, // TODO: Incomplete, add speed_control_condition, control_mode_priority
-            self.speed.map_or(0xff, |speed| rpm::enc(speed)[0]),
-            self.speed.map_or(0xff, |speed| rpm::enc(speed)[1]),
-            self.torque.unwrap_or(0xff),
-            0xff,
-            0xff,
-            0xff,
-            0xff,
+            self.speed
+                .map_or(PDU_NOT_AVAILABLE, |speed| rpm::enc(speed)[0]),
+            self.speed
+                .map_or(PDU_NOT_AVAILABLE, |speed| rpm::enc(speed)[1]),
+            self.torque.unwrap_or(PDU_NOT_AVAILABLE),
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
         ]
     }
 }

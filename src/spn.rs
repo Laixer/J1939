@@ -147,9 +147,16 @@ impl EngineControllerMessage {
 }
 
 impl core::fmt::Display for EngineControllerMessage {
-    // TODO: Implement Display
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "EngineControllerMessage")
+        write!(
+            f,
+            "Torque mode: {:?}; Driver Demand: {}%; Actual Engine: {}%; RPM: {}; Starter mode: {:?}",
+            self.engine_torque_mode,
+            self.driver_demand.unwrap_or(0),
+            self.actual_engine.unwrap_or(0),
+            self.rpm.unwrap_or(0),
+            self.starter_mode
+        )
     }
 }
 

@@ -66,6 +66,24 @@ impl Name {
     }
 }
 
+impl core::fmt::Display for Name {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "Identity number: 0x{:X}; Manufacturer code: 0x{:X}; Function instance: 0x{:X}; ECU instance: 0x{:X}; Function: 0x{:X}; Vehicle system: 0x{:X}; Vehicle system instance: 0x{:X}; Industry group: {:X}; Arbitrary address: {}",
+            self.identity_number,
+            self.manufacturer_code,
+            self.function_instance,
+            self.ecu_instance,
+            self.function,
+            self.vehicle_system,
+            self.vehicle_system_instance,
+            self.industry_group,
+            self.arbitrary_address
+        )
+    }
+}
+
 #[derive(Default)]
 pub struct NameBuilder {
     identity_number: u32,

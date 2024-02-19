@@ -150,7 +150,7 @@ impl core::fmt::Display for EngineControllerMessage {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(
             f,
-            "Torque mode: {:?}; Driver Demand: {}%; Actual Engine: {}%; RPM: {}; Starter mode: {:?}",
+            "Torque mode: {:?}; Driver demand: {}%; Actual engine: {}%; RPM: {}; Starter mode: {:?}",
             self.engine_torque_mode,
             self.driver_demand.unwrap_or(0),
             self.actual_engine.unwrap_or(0),
@@ -210,6 +210,20 @@ impl TorqueSpeedControlMessage {
             PDU_NOT_AVAILABLE,
             PDU_NOT_AVAILABLE,
         ]
+    }
+}
+
+impl core::fmt::Display for TorqueSpeedControlMessage {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "Override control mode: {:?}; Speed control condition: {:?}; Control mode priority: {:?}; Speed: {}; Torque: {}",
+            self.override_control_mode,
+            self.speed_control_condition,
+            self.control_mode_priority,
+            self.speed.unwrap_or(0),
+            self.torque.unwrap_or(0)
+        )
     }
 }
 

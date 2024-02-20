@@ -311,4 +311,36 @@ mod tests {
             Some(EngineStarterMode::StarterInhibitedOverHeat)
         );
     }
+
+    #[test]
+    fn torque_speed_control_message_1() {
+        let torque_speed_encoded = TorqueSpeedControlMessage {
+            override_control_mode: Some(crate::decode::OverrideControlMode::SpeedControl),
+            speed_control_condition: Some(
+                crate::decode::RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged1,
+            ),
+            control_mode_priority: Some(crate::decode::OverrideControlModePriority::MediumPriority),
+            speed: Some(1234),
+            torque: Some(56),
+        }
+        .to_pdu();
+        let torque_speed_decoded = TorqueSpeedControlMessage::from_pdu(&torque_speed_encoded);
+
+        assert_eq!(
+            torque_speed_decoded.override_control_mode,
+            Some(crate::decode::OverrideControlMode::SpeedControl)
+        );
+        assert_eq!(
+            torque_speed_decoded.speed_control_condition,
+            Some(
+                crate::decode::RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged1
+            )
+        );
+        assert_eq!(
+            torque_speed_decoded.control_mode_priority,
+            Some(crate::decode::OverrideControlModePriority::MediumPriority)
+        );
+        assert_eq!(torque_speed_decoded.speed, Some(1234));
+        assert_eq!(torque_speed_decoded.torque, Some(56));
+    }
 }

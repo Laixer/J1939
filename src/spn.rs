@@ -177,9 +177,9 @@ pub struct TorqueSpeedControlMessage {
 impl TorqueSpeedControlMessage {
     pub fn from_pdu(pdu: &[u8]) -> Self {
         Self {
-            override_control_mode: crate::decode::spn695(pdu[0]),
-            speed_control_condition: None, // TODO: Add SPN 696
-            control_mode_priority: None,   // TODO: Add SPN 897
+            override_control_mode: crate::decode::spn695(pdu[0] & 0b11),
+            speed_control_condition: crate::decode::spn696(pdu[0] >> 2 & 0b11),
+            control_mode_priority: crate::decode::spn897(pdu[0] >> 4 & 0b11),
             speed: rpm::dec(&pdu[1..3]),
             torque: if pdu[3] != PDU_NOT_AVAILABLE {
                 Some(pdu[3])
@@ -198,8 +198,24 @@ impl TorqueSpeedControlMessage {
             None => 0b00,
         };
 
+        let speed_control_condition = match self.speed_control_condition {
+            Some(crate::decode::RequestedSpeedControlCondition::TransientOptimizedDriveLineDisengaged) => 0b00,
+            Some(crate::decode::RequestedSpeedControlCondition::StabilityOptimizedDriveLineDisengaged) => 0b01,
+            Some(crate::decode::RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged1) => 0b10,
+            Some(crate::decode::RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged2) => 0b11,
+            None => 0b00,
+        };
+
+        let control_mode_priority = match self.control_mode_priority {
+            Some(crate::decode::OverrideControlModePriority::HighestPriority) => 0b00,
+            Some(crate::decode::OverrideControlModePriority::HighPriority) => 0b01,
+            Some(crate::decode::OverrideControlModePriority::MediumPriority) => 0b10,
+            Some(crate::decode::OverrideControlModePriority::LowPriority) => 0b11,
+            None => 0b00,
+        };
+
         [
-            override_control_mode, // TODO: Incomplete, add speed_control_condition, control_mode_priority
+            override_control_mode | speed_control_condition << 2 | control_mode_priority << 4,
             self.speed
                 .map_or(PDU_NOT_AVAILABLE, |speed| rpm::enc(speed)[0]),
             self.speed

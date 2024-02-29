@@ -103,7 +103,7 @@ pub mod slots {
         }
 
         pub fn enc(value: u8) -> u8 {
-            ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET / SCALE) as u8
+            (((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET) / SCALE) as u8
         }
     }
 
@@ -124,10 +124,11 @@ pub mod slots {
         }
 
         pub fn enc(value: u8) -> u8 {
-            ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET / SCALE) as u8
+            (((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET) / SCALE) as u8
         }
     }
 
+    // TODO: Upper limit might be wrong
     pub mod pressure {
         use crate::PDU_NOT_AVAILABLE;
 
@@ -145,7 +146,7 @@ pub mod slots {
         }
 
         pub fn enc(value: u8) -> u8 {
-            ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET / SCALE) as u8
+            (((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET) / SCALE) as u8
         }
     }
 
@@ -166,10 +167,11 @@ pub mod slots {
         }
 
         pub fn enc(value: u8) -> u8 {
-            ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET / SCALE) as u8
+            (((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET) / SCALE) as u8
         }
     }
 
+    // TODO: Upper limit might be wrong
     pub mod pressure3 {
         use crate::PDU_NOT_AVAILABLE;
 
@@ -187,7 +189,7 @@ pub mod slots {
         }
 
         pub fn enc(value: u8) -> u8 {
-            ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET / SCALE) as u8
+            (((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET) / SCALE) as u8
         }
     }
 
@@ -998,6 +1000,46 @@ mod tests {
         let encoded = slots::position_level::enc(value);
         let decoded = slots::position_level::dec(encoded);
         assert_eq!(decoded, Some(50));
+    }
+
+    #[test]
+    fn position_level_test_2() {
+        let value = 100;
+        let encoded = slots::position_level2::enc(value);
+        let decoded = slots::position_level2::dec(encoded);
+        assert_eq!(decoded, Some(100));
+    }
+
+    // #[test]
+    // fn pressure_test_1() {
+    //     let value = 33;
+    //     let encoded = slots::pressure::enc(value);
+    //     let decoded = slots::pressure::dec(encoded);
+    //     assert_eq!(decoded, Some(33));
+    // }
+
+    #[test]
+    fn pressure_test_2() {
+        let value = 7;
+        let encoded = slots::pressure2::enc(value);
+        let decoded = slots::pressure2::dec(encoded);
+        assert_eq!(decoded, Some(7));
+    }
+
+    #[test]
+    fn pressure_test_3() {
+        let value = 120;
+        let encoded = slots::pressure3::enc(value);
+        let decoded = slots::pressure3::dec(encoded);
+        assert_eq!(decoded, Some(120));
+    }
+
+    #[test]
+    fn pressure_test_4() {
+        let value = -178;
+        let encoded = slots::pressure4::enc(value);
+        let decoded = slots::pressure4::dec(encoded);
+        assert_eq!(decoded, Some(-178));
     }
 
     #[test]

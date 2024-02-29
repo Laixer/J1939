@@ -33,7 +33,7 @@ pub mod rpm {
 }
 
 //
-// TimeDate
+// Time/Date
 //
 
 pub struct TimeDate {
@@ -78,7 +78,7 @@ impl TimeDate {
 }
 
 //
-// ElectronicEngineController1
+// Electronic Engine Controller 1
 //
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -257,7 +257,7 @@ impl core::fmt::Display for ElectronicEngineController1Message {
 }
 
 //
-// TorqueSpeedControl1
+// Torque Speed Control 1
 //
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -433,7 +433,7 @@ impl core::fmt::Display for TorqueSpeedControl1Message {
 }
 
 //
-// AmbientConditions
+// Ambient Conditions
 //
 
 // TODO: Not tested
@@ -528,7 +528,7 @@ impl core::fmt::Display for AmbientConditionsMessage {
 }
 
 //
-// VehiclePosition
+// Vehicle Position
 //
 
 // TODO: Not tested
@@ -608,6 +608,108 @@ impl core::fmt::Display for VehiclePositionMessage {
             "Latitude: {:?}; Longitude: {:?}",
             self.latitude.unwrap_or(0.0),
             self.longitude.unwrap_or(0.0)
+        )
+    }
+}
+
+//
+// Fuel Economy
+//
+
+// TODO: Not tested
+pub struct FuelEconomyMessage {
+    /// Amount of fuel consumed by engine per unit of time.
+    pub fuel_rate: Option<f32>,
+    /// Current fuel economy at current vehicle velocity.
+    pub instantaneous_fuel_economy: Option<f32>,
+    /// Average of instantaneous fuel economy for that segment of vehicle operation of interest.
+    pub average_fuel_economy: Option<f32>,
+    /// The position of the valve used to regulate the supply of a fluid, usually air or fuel/air
+    /// mixture, to an engine. 0% represents no supply and 100% is full supply.
+    pub throttle_position: Option<u8>,
+}
+
+impl FuelEconomyMessage {
+    pub fn from_pdu(pdu: &[u8]) -> Self {
+        Self {
+            fuel_rate: if pdu[0] != PDU_NOT_AVAILABLE {
+                Some((u16::from_le_bytes([pdu[0], pdu[1]]) as f32 * 0.05).clamp(0.0, 3212.75))
+            } else {
+                None
+            },
+            instantaneous_fuel_economy: if pdu[2] != PDU_NOT_AVAILABLE {
+                Some(
+                    (u16::from_le_bytes([pdu[2], pdu[3]]) as f32 * (1.0 / 512.0)).clamp(0.0, 125.5),
+                )
+            } else {
+                None
+            },
+            average_fuel_economy: if pdu[4] != PDU_NOT_AVAILABLE {
+                Some(
+                    (u16::from_le_bytes([pdu[4], pdu[5]]) as f32 * (1.0 / 512.0)).clamp(0.0, 125.5),
+                )
+            } else {
+                None
+            },
+            throttle_position: if pdu[6] != PDU_NOT_AVAILABLE {
+                Some(((pdu[6] as f32 * 0.4) as u8).clamp(0, 100)) // Percentage
+            } else {
+                None
+            },
+        }
+    }
+
+    pub fn to_pdu(&self) -> [u8; 8] {
+        [
+            if let Some(fuel_rate) = self.fuel_rate {
+                ((fuel_rate * 20.0) as u16).to_le_bytes()[0]
+            } else {
+                PDU_NOT_AVAILABLE
+            },
+            if let Some(fuel_rate) = self.fuel_rate {
+                ((fuel_rate * 20.0) as u16).to_le_bytes()[1]
+            } else {
+                PDU_NOT_AVAILABLE
+            },
+            if let Some(instantaneous_fuel_economy) = self.instantaneous_fuel_economy {
+                ((instantaneous_fuel_economy * 512.0) as u16).to_le_bytes()[0]
+            } else {
+                PDU_NOT_AVAILABLE
+            },
+            if let Some(instantaneous_fuel_economy) = self.instantaneous_fuel_economy {
+                ((instantaneous_fuel_economy * 512.0) as u16).to_le_bytes()[1]
+            } else {
+                PDU_NOT_AVAILABLE
+            },
+            if let Some(average_fuel_economy) = self.average_fuel_economy {
+                ((average_fuel_economy * 512.0) as u16).to_le_bytes()[0]
+            } else {
+                PDU_NOT_AVAILABLE
+            },
+            if let Some(average_fuel_economy) = self.average_fuel_economy {
+                ((average_fuel_economy * 512.0) as u16).to_le_bytes()[1]
+            } else {
+                PDU_NOT_AVAILABLE
+            },
+            if let Some(throttle_position) = self.throttle_position {
+                (throttle_position as f32 * 2.5) as u8
+            } else {
+                PDU_NOT_AVAILABLE
+            },
+            PDU_NOT_AVAILABLE,
+        ]
+    }
+}
+
+impl core::fmt::Display for FuelEconomyMessage {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "Fuel rate: {} L/h; Instantaneous fuel economy: {} km/kg; Average fuel economy: {} km/kg; Throttle position: {}%",
+            self.fuel_rate.unwrap_or(0.0),
+            self.instantaneous_fuel_economy.unwrap_or(0.0),
+            self.average_fuel_economy.unwrap_or(0.0),
+            self.throttle_position.unwrap_or(0)
         )
     }
 }

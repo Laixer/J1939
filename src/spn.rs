@@ -85,6 +85,27 @@ pub mod slots {
             (value as i16).to_le_bytes()
         }
     }
+
+    pub mod position_level {
+        use crate::PDU_NOT_AVAILABLE;
+
+        const SCALE: f32 = 0.4;
+        const _OFFSET: f32 = 0.0;
+        const LIMIT_LOWER: f32 = 0.0;
+        const LIMIT_UPPER: f32 = 100.0;
+
+        pub fn dec(value: u8) -> Option<u8> {
+            if value != PDU_NOT_AVAILABLE {
+                Some((value as f32 * SCALE).clamp(LIMIT_LOWER, LIMIT_UPPER) as u8)
+            } else {
+                None
+            }
+        }
+
+        pub fn enc(value: u8) -> u8 {
+            ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) / SCALE) as u8
+        }
+    }
 }
 
 //
@@ -689,11 +710,7 @@ impl FuelEconomyMessage {
             } else {
                 None
             },
-            throttle_position: if pdu[6] != PDU_NOT_AVAILABLE {
-                Some(((pdu[6] as f32 * 0.4) as u8).clamp(0, 100)) // Percentage
-            } else {
-                None
-            },
+            throttle_position: slots::position_level::dec(pdu[6]),
         }
     }
 
@@ -729,11 +746,7 @@ impl FuelEconomyMessage {
             } else {
                 PDU_NOT_AVAILABLE
             },
-            if let Some(throttle_position) = self.throttle_position {
-                (throttle_position as f32 * 2.5) as u8
-            } else {
-                PDU_NOT_AVAILABLE
-            },
+            self.throttle_position.unwrap_or(PDU_NOT_AVAILABLE),
             PDU_NOT_AVAILABLE,
         ]
     }
@@ -770,6 +783,14 @@ mod tests {
         let encoded = slots::temperature::enc(value);
         let decoded = slots::temperature::dec(encoded);
         assert_eq!(decoded, Some(25));
+    }
+
+    #[test]
+    fn position_level_test_1() {
+        let value = 50;
+        let encoded = slots::position_level::enc(value);
+        let decoded = slots::position_level::dec(encoded);
+        assert_eq!(decoded, Some(50));
     }
 
     #[test]

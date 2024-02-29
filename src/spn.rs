@@ -34,7 +34,7 @@ use crate::PDU_NOT_AVAILABLE;
 //     }
 // }
 
-/// Scaling, Limit, Offset, and Transfer Function
+/// Scaling, Limit, Offsets and Transfer Functions
 pub mod slots {
     pub mod rotational_velocity {
         use crate::PDU_NOT_AVAILABLE;
@@ -90,20 +90,20 @@ pub mod slots {
         use crate::PDU_NOT_AVAILABLE;
 
         const SCALE: f32 = 0.4;
-        const _OFFSET: f32 = 0.0;
+        const OFFSET: f32 = 0.0;
         const LIMIT_LOWER: f32 = 0.0;
         const LIMIT_UPPER: f32 = 100.0;
 
         pub fn dec(value: u8) -> Option<u8> {
             if value != PDU_NOT_AVAILABLE {
-                Some((value as f32 * SCALE).clamp(LIMIT_LOWER, LIMIT_UPPER) as u8)
+                Some((value as f32 * SCALE + OFFSET).clamp(LIMIT_LOWER, LIMIT_UPPER) as u8)
             } else {
                 None
             }
         }
 
         pub fn enc(value: u8) -> u8 {
-            ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) / SCALE) as u8
+            ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET / SCALE) as u8
         }
     }
 
@@ -125,6 +125,95 @@ pub mod slots {
 
         pub fn enc(value: u8) -> u8 {
             ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET / SCALE) as u8
+        }
+    }
+
+    pub mod pressure {
+        use crate::PDU_NOT_AVAILABLE;
+
+        const SCALE: f32 = 4.0;
+        const OFFSET: f32 = 0.0;
+        const LIMIT_LOWER: f32 = 0.0;
+        const LIMIT_UPPER: f32 = 1000.0;
+
+        pub fn dec(value: u8) -> Option<u8> {
+            if value != PDU_NOT_AVAILABLE {
+                Some((value as f32 * SCALE + OFFSET).clamp(LIMIT_LOWER, LIMIT_UPPER) as u8)
+            } else {
+                None
+            }
+        }
+
+        pub fn enc(value: u8) -> u8 {
+            ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET / SCALE) as u8
+        }
+    }
+
+    pub mod pressure2 {
+        use crate::PDU_NOT_AVAILABLE;
+
+        const SCALE: f32 = 0.05;
+        const OFFSET: f32 = 0.0;
+        const LIMIT_LOWER: f32 = 0.0;
+        const LIMIT_UPPER: f32 = 12.5;
+
+        pub fn dec(value: u8) -> Option<u8> {
+            if value != PDU_NOT_AVAILABLE {
+                Some((value as f32 * SCALE + OFFSET).clamp(LIMIT_LOWER, LIMIT_UPPER) as u8)
+            } else {
+                None
+            }
+        }
+
+        pub fn enc(value: u8) -> u8 {
+            ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET / SCALE) as u8
+        }
+    }
+
+    pub mod pressure3 {
+        use crate::PDU_NOT_AVAILABLE;
+
+        const SCALE: f32 = 2.0;
+        const OFFSET: f32 = 0.0;
+        const LIMIT_LOWER: f32 = 0.0;
+        const LIMIT_UPPER: f32 = 500.0;
+
+        pub fn dec(value: u8) -> Option<u8> {
+            if value != PDU_NOT_AVAILABLE {
+                Some((value as f32 * SCALE + OFFSET).clamp(LIMIT_LOWER, LIMIT_UPPER) as u8)
+            } else {
+                None
+            }
+        }
+
+        pub fn enc(value: u8) -> u8 {
+            ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET / SCALE) as u8
+        }
+    }
+
+    pub mod pressure4 {
+        use crate::PDU_NOT_AVAILABLE;
+
+        const SCALE: f32 = 1.0 / 128.0;
+        const OFFSET: f32 = -250.0;
+        const LIMIT_LOWER: f32 = -250.0;
+        const LIMIT_UPPER: f32 = 251.99;
+
+        pub fn dec(value: [u8; 2]) -> Option<i16> {
+            if value != [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE] {
+                Some(
+                    ((i16::from_le_bytes(value) as f32 * SCALE + OFFSET)
+                        .clamp(LIMIT_LOWER, LIMIT_UPPER)) as i16,
+                )
+            } else {
+                None
+            }
+        }
+
+        pub fn enc(value: i16) -> [u8; 2] {
+            let value = ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET) / SCALE;
+
+            (value as i16).to_le_bytes()
         }
     }
 }
@@ -485,7 +574,7 @@ impl TorqueSpeedControl1Message {
             override_control_mode: OverrideControlMode::from_value(pdu[0] & 0b11),
             speed_control_condition: RequestedSpeedControlCondition::from_value(pdu[0] >> 2 & 0b11),
             control_mode_priority: OverrideControlModePriority::from_value(pdu[0] >> 4 & 0b11),
-            speed: slots::rotational_velocity::dec(pdu[1..3].try_into().unwrap()),
+            speed: slots::rotational_velocity::dec([pdu[1], pdu[2]]),
             torque: if pdu[3] != PDU_NOT_AVAILABLE {
                 Some(pdu[3])
             } else {
@@ -572,7 +661,6 @@ impl AmbientConditionsMessage {
         }
     }
 
-    // TODO: Add 2 bytes temperature conversion
     pub fn to_pdu(&self) -> [u8; 8] {
         [
             if let Some(pressure) = self.barometric_pressure {
@@ -580,17 +668,35 @@ impl AmbientConditionsMessage {
             } else {
                 PDU_NOT_AVAILABLE
             },
-            PDU_NOT_AVAILABLE,
-            PDU_NOT_AVAILABLE,
-            PDU_NOT_AVAILABLE,
-            PDU_NOT_AVAILABLE,
+            self.cab_interior_temperature.map_or(
+                [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE],
+                slots::temperature::enc,
+            )[0],
+            self.cab_interior_temperature.map_or(
+                [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE],
+                slots::temperature::enc,
+            )[1],
+            self.ambient_air_temperature.map_or(
+                [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE],
+                slots::temperature::enc,
+            )[0],
+            self.ambient_air_temperature.map_or(
+                [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE],
+                slots::temperature::enc,
+            )[1],
             if let Some(temperature) = self.air_inlet_temperature {
                 (temperature + 40) as u8
             } else {
                 PDU_NOT_AVAILABLE
             },
-            PDU_NOT_AVAILABLE,
-            PDU_NOT_AVAILABLE,
+            self.road_surface_temperature.map_or(
+                [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE],
+                slots::temperature::enc,
+            )[0],
+            self.road_surface_temperature.map_or(
+                [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE],
+                slots::temperature::enc,
+            )[1],
         ]
     }
 }
@@ -784,6 +890,84 @@ impl core::fmt::Display for FuelEconomyMessage {
             self.instantaneous_fuel_economy.unwrap_or(0.0),
             self.average_fuel_economy.unwrap_or(0.0),
             self.throttle_position.unwrap_or(0)
+        )
+    }
+}
+
+//
+// Engine Fluid Level/Pressure 1
+//
+
+// TODO: Not tested
+pub struct EngineFluidLevelPressure1Message {
+    /// Gage pressure of fuel in system as delivered from supply pump to the injection pump.
+    pub fuel_delivery_pressure: Option<u8>,
+    /// Differential crankcase blow-by pressure as measured through a tube with a venturi.
+    pub extended_crankcase_blow_by_pressure: Option<u8>,
+    /// Ratio of current volume of engine sump oil to maximum required volume.
+    pub engine_oil_level: Option<u8>,
+    /// Gage pressure of oil in engine lubrication system as provided by oil pump.
+    pub engine_oil_pressure: Option<u8>,
+    /// Gage pressure inside engine crankcase.
+    pub crankcase_pressure: Option<i16>,
+    /// Gage pressure of liquid found in engine cooling system.
+    pub coolant_pressure: Option<u8>,
+    /// Ratio of volume of liquid found in engine cooling system to total cooling system volume. Typical
+    /// monitoring location is in the coolant expansion tank.
+    pub coolant_level: Option<u8>,
+}
+
+impl EngineFluidLevelPressure1Message {
+    pub fn from_pdu(pdu: &[u8]) -> Self {
+        Self {
+            fuel_delivery_pressure: slots::pressure::dec(pdu[0]),
+            extended_crankcase_blow_by_pressure: slots::pressure2::dec(pdu[1]),
+            engine_oil_level: slots::position_level::dec(pdu[2]),
+            engine_oil_pressure: slots::pressure::dec(pdu[3]),
+            crankcase_pressure: slots::pressure4::dec([pdu[4], pdu[5]]),
+            coolant_pressure: slots::pressure3::dec(pdu[6]),
+            coolant_level: slots::position_level::dec(pdu[7]),
+        }
+    }
+
+    pub fn to_pdu(&self) -> [u8; 8] {
+        [
+            self.fuel_delivery_pressure
+                .map_or(PDU_NOT_AVAILABLE, slots::pressure::enc),
+            self.extended_crankcase_blow_by_pressure
+                .map_or(PDU_NOT_AVAILABLE, slots::pressure2::enc),
+            self.engine_oil_level
+                .map_or(PDU_NOT_AVAILABLE, slots::position_level::enc),
+            self.engine_oil_pressure
+                .map_or(PDU_NOT_AVAILABLE, slots::pressure::enc),
+            self.crankcase_pressure.map_or(
+                [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE],
+                slots::pressure4::enc,
+            )[0],
+            self.crankcase_pressure.map_or(
+                [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE],
+                slots::pressure4::enc,
+            )[1],
+            self.coolant_pressure
+                .map_or(PDU_NOT_AVAILABLE, slots::pressure3::enc),
+            self.coolant_level
+                .map_or(PDU_NOT_AVAILABLE, slots::position_level::enc),
+        ]
+    }
+}
+
+impl core::fmt::Display for EngineFluidLevelPressure1Message {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "Fuel delivery pressure: {} kPa; Extended crankcase blow-by pressure: {} kPa; Engine oil level: {}%; Engine oil pressure: {} kPa; Crankcase pressure: {} kPa; Coolant pressure: {} kPa; Coolant level: {}%",
+            self.fuel_delivery_pressure.unwrap_or(0),
+            self.extended_crankcase_blow_by_pressure.unwrap_or(0),
+            self.engine_oil_level.unwrap_or(0),
+            self.engine_oil_pressure.unwrap_or(0),
+            self.crankcase_pressure.unwrap_or(0),
+            self.coolant_pressure.unwrap_or(0),
+            self.coolant_level.unwrap_or(0)
         )
     }
 }

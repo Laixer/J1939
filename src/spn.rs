@@ -16,6 +16,7 @@ pub mod byte {
     }
 }
 
+// TODO: Obsolete
 pub mod rpm {
     use crate::PDU_NOT_AVAILABLE;
 
@@ -28,6 +29,24 @@ pub mod rpm {
             Some((u16::from_le_bytes([value[0], value[1]]) as f32 * 0.125) as u16)
         } else {
             None
+        }
+    }
+}
+
+pub mod slots {
+    pub mod rotational_velocity {
+        use crate::PDU_NOT_AVAILABLE;
+
+        pub fn dec(value: [u8; 2]) -> Option<u16> {
+            if value != [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE] {
+                Some((u16::from_le_bytes(value) as f32 * 0.125).clamp(0.0, 8031.875) as u16)
+            } else {
+                None
+            }
+        }
+
+        pub fn enc(value: u16) -> [u8; 2] {
+            (((value as f32).clamp(0.0, 8031.875) * 8.0) as u16).to_le_bytes()
         }
     }
 }
@@ -220,7 +239,7 @@ impl ElectronicEngineController1Message {
             engine_torque_mode: EngineTorqueMode::from_value(pdu[0]),
             driver_demand: byte::dec(pdu[1]),
             actual_engine: byte::dec(pdu[2]),
-            rpm: rpm::dec(&pdu[3..5]),
+            rpm: slots::rotational_velocity::dec(pdu[3..5].try_into().unwrap()),
             source_addr: crate::decode::spn1483(pdu[5]),
             starter_mode: EngineStarterMode::from_value(pdu[6]),
         }
@@ -232,8 +251,10 @@ impl ElectronicEngineController1Message {
                 .map_or(PDU_NOT_AVAILABLE, EngineTorqueMode::to_value),
             self.driver_demand.map_or(PDU_NOT_AVAILABLE, byte::enc),
             self.actual_engine.map_or(PDU_NOT_AVAILABLE, byte::enc),
-            self.rpm.map_or([0xff, 0xff], rpm::enc)[0],
-            self.rpm.map_or([0xff, 0xff], rpm::enc)[1],
+            self.rpm
+                .map_or([0xff, 0xff], slots::rotational_velocity::enc)[0],
+            self.rpm
+                .map_or([0xff, 0xff], slots::rotational_velocity::enc)[1],
             self.source_addr.unwrap_or(PDU_NOT_AVAILABLE),
             self.starter_mode
                 .map_or(PDU_NOT_AVAILABLE, EngineStarterMode::to_value),
@@ -717,6 +738,14 @@ impl core::fmt::Display for FuelEconomyMessage {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn rotational_velocity_test_1() {
+        let value = 900;
+        let encoded = slots::rotational_velocity::enc(value);
+        let decoded = slots::rotational_velocity::dec(encoded);
+        assert_eq!(decoded, Some(900));
+    }
 
     #[test]
     fn engine_controller_message_1() {

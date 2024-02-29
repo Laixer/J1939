@@ -36,6 +36,25 @@ use crate::PDU_NOT_AVAILABLE;
 
 /// Scaling, Limit, Offsets and Transfer Functions
 pub mod slots {
+    struct Param {
+        scale: f32,
+        offset: f32,
+        limit_lower: f32,
+        limit_upper: f32,
+    }
+
+    impl Param {
+        #[inline]
+        fn dec(&self, v: f32) -> f32 {
+            (v * self.scale + self.offset).clamp(self.limit_lower, self.limit_upper)
+        }
+
+        #[inline]
+        fn enc(&self, v: f32) -> f32 {
+            (v.clamp(self.limit_lower, self.limit_upper) - self.offset) / self.scale
+        }
+    }
+
     pub mod rotational_velocity {
         use crate::PDU_NOT_AVAILABLE;
 
@@ -220,54 +239,44 @@ pub mod slots {
     }
 
     pub mod liquid_fuel_usage {
-        use crate::PDU_NOT_AVAILABLE;
-
-        const SCALE: f32 = 0.5;
-        const OFFSET: f32 = 0.0;
-        const LIMIT_LOWER: f32 = 0.0;
-        const LIMIT_UPPER: f32 = 2105540607.5;
+        const RESOLUTION: super::Param = super::Param {
+            scale: 0.5,
+            offset: 0.0,
+            limit_lower: 0.0,
+            limit_upper: 2105540607.5,
+        };
 
         pub fn dec(value: [u8; 4]) -> Option<u32> {
-            if value != [PDU_NOT_AVAILABLE; 4] {
-                Some(
-                    ((u32::from_le_bytes(value) as f32 * SCALE + OFFSET)
-                        .clamp(LIMIT_LOWER, LIMIT_UPPER)) as u32,
-                )
-            } else {
-                None
+            if value == [crate::PDU_NOT_AVAILABLE; 4] {
+                return None;
             }
+
+            Some(RESOLUTION.dec(u32::from_le_bytes(value) as f32) as u32)
         }
 
         pub fn enc(value: u32) -> [u8; 4] {
-            let value = ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET) / SCALE;
-
-            (value as u32).to_le_bytes()
+            (RESOLUTION.enc(value as f32) as u32).to_le_bytes()
         }
     }
 
     pub mod distance {
-        use crate::PDU_NOT_AVAILABLE;
-
-        const SCALE: f32 = 0.125;
-        const OFFSET: f32 = 0.0;
-        const LIMIT_LOWER: f32 = 0.0;
-        const LIMIT_UPPER: f32 = 526385151.9;
+        const RESOLUTION: super::Param = super::Param {
+            scale: 0.125,
+            offset: 0.0,
+            limit_lower: 0.0,
+            limit_upper: 526385151.9,
+        };
 
         pub fn dec(value: [u8; 4]) -> Option<u32> {
-            if value != [PDU_NOT_AVAILABLE; 4] {
-                Some(
-                    ((u32::from_le_bytes(value) as f32 * SCALE + OFFSET)
-                        .clamp(LIMIT_LOWER, LIMIT_UPPER)) as u32,
-                )
-            } else {
-                None
+            if value == [crate::PDU_NOT_AVAILABLE; 4] {
+                return None;
             }
+
+            Some(RESOLUTION.dec(u32::from_le_bytes(value) as f32) as u32)
         }
 
         pub fn enc(value: u32) -> [u8; 4] {
-            let value = ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET) / SCALE;
-
-            (value as u32).to_le_bytes()
+            (RESOLUTION.enc(value as f32) as u32).to_le_bytes()
         }
     }
 }

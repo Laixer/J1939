@@ -244,6 +244,32 @@ pub mod slots {
             (value as u32).to_le_bytes()
         }
     }
+
+    pub mod distance {
+        use crate::PDU_NOT_AVAILABLE;
+
+        const SCALE: f32 = 0.125;
+        const OFFSET: f32 = 0.0;
+        const LIMIT_LOWER: f32 = 0.0;
+        const LIMIT_UPPER: f32 = 526385151.9;
+
+        pub fn dec(value: [u8; 4]) -> Option<u32> {
+            if value != [PDU_NOT_AVAILABLE; 4] {
+                Some(
+                    ((u32::from_le_bytes(value) as f32 * SCALE + OFFSET)
+                        .clamp(LIMIT_LOWER, LIMIT_UPPER)) as u32,
+                )
+            } else {
+                None
+            }
+        }
+
+        pub fn enc(value: u32) -> [u8; 4] {
+            let value = ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET) / SCALE;
+
+            (value as u32).to_le_bytes()
+        }
+    }
 }
 
 //
@@ -1108,6 +1134,114 @@ impl core::fmt::Display for FuelConsumptionMessage {
     }
 }
 
+//
+// Vehicle Distance
+//
+
+pub struct VehicleDistanceMessage {
+    /// Distance traveled during all or part of a journey.
+    pub trip_distance: Option<u32>,
+    /// Accumulated distance traveled by vehicle during its operation.
+    pub total_vehicle_distance: Option<u32>,
+}
+
+impl VehicleDistanceMessage {
+    pub fn from_pdu(pdu: &[u8]) -> Self {
+        Self {
+            trip_distance: slots::distance::dec([pdu[0], pdu[1], pdu[2], pdu[3]]),
+            total_vehicle_distance: slots::distance::dec([pdu[4], pdu[5], pdu[6], pdu[7]]),
+        }
+    }
+
+    pub fn to_pdu(&self) -> [u8; 8] {
+        [
+            self.trip_distance.map_or(
+                [
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                ],
+                slots::distance::enc,
+            )[0],
+            self.trip_distance.map_or(
+                [
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                ],
+                slots::distance::enc,
+            )[1],
+            self.trip_distance.map_or(
+                [
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                ],
+                slots::distance::enc,
+            )[2],
+            self.trip_distance.map_or(
+                [
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                ],
+                slots::distance::enc,
+            )[3],
+            self.total_vehicle_distance.map_or(
+                [
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                ],
+                slots::distance::enc,
+            )[0],
+            self.total_vehicle_distance.map_or(
+                [
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                ],
+                slots::distance::enc,
+            )[1],
+            self.total_vehicle_distance.map_or(
+                [
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                ],
+                slots::distance::enc,
+            )[2],
+            self.total_vehicle_distance.map_or(
+                [
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                ],
+                slots::distance::enc,
+            )[3],
+        ]
+    }
+}
+
+impl core::fmt::Display for VehicleDistanceMessage {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "Trip distance: {} km; Total vehicle distance: {} km",
+            self.trip_distance.unwrap_or(0),
+            self.total_vehicle_distance.unwrap_or(0)
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1182,6 +1316,14 @@ mod tests {
         let encoded = slots::liquid_fuel_usage::enc(value);
         let decoded = slots::liquid_fuel_usage::dec(encoded);
         assert_eq!(decoded, Some(7863247));
+    }
+
+    #[test]
+    fn distance_test_1() {
+        let value = 123456;
+        let encoded = slots::distance::enc(value);
+        let decoded = slots::distance::dec(encoded);
+        assert_eq!(decoded, Some(123456));
     }
 
     #[test]

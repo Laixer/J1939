@@ -39,14 +39,18 @@ pub enum PGN {
     ProprietarilyConfigurableMessage16,
     /// XFER - Transfer.
     Transfer,
-    /// EEC1 - Electronic Engine Controller 1.
-    ElectronicEngineController1,
     /// EEC2 - Electronic Engine Controller 2.
     ElectronicEngineController2,
+    /// EEC1 - Electronic Engine Controller 1.
+    ElectronicEngineController1,
+    /// ETC2 Electronic Transmission Controller 2
+    ElectronicTransmissionController2,
     /// TCO1 - Tachoraph.
     Tachoraph,
     /// EH - ECU History.
     ECUHistory,
+    /// EEC4 - Electronic Engine Controller 4.
+    ElectronicEngineController4,
     /// SOFT - Software Identification.
     SoftwareIdentification,
     /// IO - Idle Operation.
@@ -63,16 +67,46 @@ pub enum PGN {
     AddressClaimed,
     /// PropA - Proprietary A.
     ProprietaryA,
-    // EBC1 - Electronic Brake Controller 1.
+    /// EBC1 - Electronic Brake Controller 1.
     ElectronicBrakeController1,
-    /// ETC1 - Transmission Message 1.
-    TransmissionMessage1,
+    /// ETC1 - Electronic Transmission Controller 1.
+    ElectronicTransmissionController1,
     /// CA - Commanded Address.
     CommandedAddress,
+    /// AUXIO - Auxiliary Input/Output Status.
+    AuxiliaryInputOutputStatus,
+    /// EEC3 - Electronic Engine Controller 3
+    ElectronicEngineController3,
+    /// VD - Vehicle Distance.
+    VehicleDistance,
+    /// EC - Engine Configuration.
+    EngineConfiguration,
+    /// SHUTDOWN - Shutdown.
+    Shutdown,
+    /// HOURS - Engine Hours, Revolutions.
+    EngineHoursRevolutions,
     /// TD - Time / Date.
     TimeDate,
+    /// VH - Vehicle Hours.
+    VehicleHours,
+    /// VDS - Vehicle Direction/Speed.
+    VehicleDirectionSpeed,
+    /// LFC - Fuel Consumption (Liquid).
+    FuelConsumption,
+    /// VW - Vehicle Weight.
+    VehicleWeight,
     /// ET1 - Engine Temperature 1.
     EngineTemperature1,
+    /// EFL/P1 - Engine Fluid Level/Pressure 1.
+    EngineFluidLevelPressure1,
+    /// CCVS - Cruise Control/Vehicle Speed.
+    CruiseControlVehicleSpeed,
+    /// LFE - Fuel Economy (Liquid).
+    FuelEconomy,
+    /// VP - Vehicle Position.
+    VehiclePosition,
+    /// AMB - Ambient Conditions.
+    AmbientConditions,
     /// VEP1 - Vehicle Electrical Power 1.
     VehicleElectricalPower1,
     /// ACKM - Acknowledgment Message.
@@ -130,18 +164,35 @@ impl From<u32> for PGN {
             60_928 => PGN::AddressClaimed,
             61_184 => PGN::ProprietaryA,
             61_441 => PGN::ElectronicBrakeController1,
-            61_442 => PGN::TransmissionMessage1,
+            61_442 => PGN::ElectronicTransmissionController1,
             61_443 => PGN::ElectronicEngineController2,
             61_444 => PGN::ElectronicEngineController1,
+            61_445 => PGN::ElectronicTransmissionController2,
             65_132 => PGN::Tachoraph,
             65_201 => PGN::ECUHistory,
+            65_214 => PGN::ElectronicEngineController4,
             65_240 => PGN::CommandedAddress,
+            65_241 => PGN::AuxiliaryInputOutputStatus,
             65_242 => PGN::SoftwareIdentification,
             65_244 => PGN::IdleOperation,
+            65_247 => PGN::ElectronicEngineController3,
+            65_248 => PGN::VehicleDistance,
+            65_251 => PGN::EngineConfiguration,
+            65_252 => PGN::Shutdown,
+            65_253 => PGN::EngineHoursRevolutions,
             65_254 => PGN::TimeDate,
+            65_255 => PGN::VehicleHours,
+            65_256 => PGN::VehicleDirectionSpeed,
+            65_257 => PGN::FuelConsumption,
+            65_258 => PGN::VehicleWeight,
             65_259 => PGN::ComponentIdentification,
             65_260 => PGN::VehicleIdentification,
             65_262 => PGN::EngineTemperature1,
+            65_263 => PGN::EngineFluidLevelPressure1,
+            65_265 => PGN::CruiseControlVehicleSpeed,
+            65_266 => PGN::FuelEconomy,
+            65_267 => PGN::VehiclePosition,
+            65_269 => PGN::AmbientConditions,
             65_271 => PGN::VehicleElectricalPower1,
             65_280..=65_535 => PGN::ProprietaryB(value & 0x3ffff),
             _ => PGN::Other(value & 0x3ffff),
@@ -178,18 +229,35 @@ impl From<PGN> for u32 {
             PGN::AddressClaimed => 60_928,
             PGN::ProprietaryA => 61_184,
             PGN::ElectronicBrakeController1 => 61_441,
-            PGN::TransmissionMessage1 => 61_442,
+            PGN::ElectronicTransmissionController1 => 61_442,
             PGN::ElectronicEngineController1 => 61_444,
             PGN::ElectronicEngineController2 => 61_443,
+            PGN::ElectronicTransmissionController2 => 61_445,
             PGN::Tachoraph => 65_132,
             PGN::ECUHistory => 65_201,
+            PGN::ElectronicEngineController4 => 65_214,
             PGN::CommandedAddress => 65_240,
+            PGN::AuxiliaryInputOutputStatus => 65_241,
             PGN::SoftwareIdentification => 65_242,
             PGN::IdleOperation => 65_244,
+            PGN::ElectronicEngineController3 => 65_247,
+            PGN::VehicleDistance => 65_248,
+            PGN::EngineConfiguration => 65_251,
+            PGN::Shutdown => 65_252,
+            PGN::EngineHoursRevolutions => 65_253,
             PGN::TimeDate => 65_254,
+            PGN::VehicleHours => 65_255,
+            PGN::VehicleDirectionSpeed => 65_256,
+            PGN::FuelConsumption => 65_257,
+            PGN::VehicleWeight => 65_258,
             PGN::ComponentIdentification => 65_259,
             PGN::VehicleIdentification => 65_260,
             PGN::EngineTemperature1 => 65_262,
+            PGN::EngineFluidLevelPressure1 => 65_263,
+            PGN::CruiseControlVehicleSpeed => 65_265,
+            PGN::FuelEconomy => 65_266,
+            PGN::VehiclePosition => 65_267,
+            PGN::AmbientConditions => 65_269,
             PGN::VehicleElectricalPower1 => 65_271,
             PGN::ProprietaryB(value_u32) => value_u32 & 0x3ffff,
             PGN::Other(value_u32) => value_u32 & 0x3ffff,

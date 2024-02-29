@@ -432,6 +432,100 @@ impl core::fmt::Display for TorqueSpeedControl1Message {
     }
 }
 
+//
+// AmbientConditions
+//
+
+pub struct AmbientConditionsMessage {
+    /// Barometric pressure.
+    pub barometric_pressure: Option<u8>,
+    /// Cab interior temperature.
+    pub cab_interior_temperature: Option<i16>,
+    /// Ambient air temperature.
+    pub ambient_air_temperature: Option<i16>,
+    /// Air inlet temperature.
+    pub air_inlet_temperature: Option<i8>,
+    /// Road surface temperature.
+    pub road_surface_temperature: Option<i16>,
+}
+
+impl AmbientConditionsMessage {
+    pub fn from_pdu(pdu: &[u8]) -> Self {
+        Self {
+            barometric_pressure: if pdu[0] != PDU_NOT_AVAILABLE {
+                Some((pdu[0] as f32 * 0.5) as u8)
+            } else {
+                None
+            },
+            cab_interior_temperature: if pdu[1] != PDU_NOT_AVAILABLE {
+                Some(
+                    ((i16::from_le_bytes([pdu[1], pdu[2]]) as f32 * 0.03125) as i16 - 273)
+                        .clamp(-273, 1735),
+                )
+            } else {
+                None
+            },
+            ambient_air_temperature: if pdu[3] != PDU_NOT_AVAILABLE {
+                Some(
+                    ((i16::from_le_bytes([pdu[3], pdu[4]]) as f32 * 0.03125) as i16 - 273)
+                        .clamp(-273, 1735),
+                )
+            } else {
+                None
+            },
+            air_inlet_temperature: if pdu[5] != PDU_NOT_AVAILABLE {
+                Some((pdu[5] as i8 - 40).clamp(-40, 127))
+            } else {
+                None
+            },
+            road_surface_temperature: if pdu[6] != PDU_NOT_AVAILABLE {
+                Some(
+                    ((i16::from_le_bytes([pdu[6], pdu[7]]) as f32 * 0.03125) as i16 - 273)
+                        .clamp(-273, 1735),
+                )
+            } else {
+                None
+            },
+        }
+    }
+
+    // TODO: Add 2 bytes temperature conversion
+    pub fn to_pdu(&self) -> [u8; 8] {
+        [
+            if let Some(pressure) = self.barometric_pressure {
+                (pressure as f32 * 2.0) as u8
+            } else {
+                PDU_NOT_AVAILABLE
+            },
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            if let Some(temperature) = self.air_inlet_temperature {
+                (temperature + 40) as u8
+            } else {
+                PDU_NOT_AVAILABLE
+            },
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+        ]
+    }
+}
+
+impl core::fmt::Display for AmbientConditionsMessage {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "Barometric pressure: {} kPa; Cab interior temperature: {}°C; Ambient air temperature: {}°C; Air inlet temperature: {}°C; Road surface temperature: {}°C",
+            self.barometric_pressure.unwrap_or(0),
+            self.cab_interior_temperature.unwrap_or(0),
+            self.ambient_air_temperature.unwrap_or(0),
+            self.air_inlet_temperature.unwrap_or(0),
+            self.road_surface_temperature.unwrap_or(0)
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

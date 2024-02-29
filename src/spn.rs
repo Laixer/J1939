@@ -218,6 +218,32 @@ pub mod slots {
             (value as i16).to_le_bytes()
         }
     }
+
+    pub mod liquid_fuel_usage {
+        use crate::PDU_NOT_AVAILABLE;
+
+        const SCALE: f32 = 0.5;
+        const OFFSET: f32 = 0.0;
+        const LIMIT_LOWER: f32 = 0.0;
+        const LIMIT_UPPER: f32 = 2105540607.5;
+
+        pub fn dec(value: [u8; 4]) -> Option<u32> {
+            if value != [PDU_NOT_AVAILABLE; 4] {
+                Some(
+                    ((u32::from_le_bytes(value) as f32 * SCALE + OFFSET)
+                        .clamp(LIMIT_LOWER, LIMIT_UPPER)) as u32,
+                )
+            } else {
+                None
+            }
+        }
+
+        pub fn enc(value: u32) -> [u8; 4] {
+            let value = ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET) / SCALE;
+
+            (value as u32).to_le_bytes()
+        }
+    }
 }
 
 //
@@ -974,6 +1000,114 @@ impl core::fmt::Display for EngineFluidLevelPressure1Message {
     }
 }
 
+//
+// Fuel Consumption (Liquid)
+//
+
+pub struct FuelConsumptionMessage {
+    /// Fuel consumed during all or part of a journey.
+    pub trip_fuel: Option<u32>,
+    /// Accumulated amount of fuel used during vehicle operation.
+    pub total_fuel_used: Option<u32>,
+}
+
+impl FuelConsumptionMessage {
+    pub fn from_pdu(pdu: &[u8]) -> Self {
+        Self {
+            trip_fuel: slots::liquid_fuel_usage::dec([pdu[0], pdu[1], pdu[2], pdu[3]]),
+            total_fuel_used: slots::liquid_fuel_usage::dec([pdu[4], pdu[5], pdu[6], pdu[7]]),
+        }
+    }
+
+    pub fn to_pdu(&self) -> [u8; 8] {
+        [
+            self.trip_fuel.map_or(
+                [
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                ],
+                slots::liquid_fuel_usage::enc,
+            )[0],
+            self.trip_fuel.map_or(
+                [
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                ],
+                slots::liquid_fuel_usage::enc,
+            )[1],
+            self.trip_fuel.map_or(
+                [
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                ],
+                slots::liquid_fuel_usage::enc,
+            )[2],
+            self.trip_fuel.map_or(
+                [
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                ],
+                slots::liquid_fuel_usage::enc,
+            )[3],
+            self.total_fuel_used.map_or(
+                [
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                ],
+                slots::liquid_fuel_usage::enc,
+            )[0],
+            self.total_fuel_used.map_or(
+                [
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                ],
+                slots::liquid_fuel_usage::enc,
+            )[1],
+            self.total_fuel_used.map_or(
+                [
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                ],
+                slots::liquid_fuel_usage::enc,
+            )[2],
+            self.total_fuel_used.map_or(
+                [
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                ],
+                slots::liquid_fuel_usage::enc,
+            )[3],
+        ]
+    }
+}
+
+impl core::fmt::Display for FuelConsumptionMessage {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "Trip fuel: {} L; Total fuel used: {} L",
+            self.trip_fuel.unwrap_or(0),
+            self.total_fuel_used.unwrap_or(0)
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1040,6 +1174,14 @@ mod tests {
         let encoded = slots::pressure4::enc(value);
         let decoded = slots::pressure4::dec(encoded);
         assert_eq!(decoded, Some(-178));
+    }
+
+    #[test]
+    fn liquid_fuel_usage_test_1() {
+        let value = 7863247;
+        let encoded = slots::liquid_fuel_usage::enc(value);
+        let decoded = slots::liquid_fuel_usage::dec(encoded);
+        assert_eq!(decoded, Some(7863247));
     }
 
     #[test]

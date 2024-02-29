@@ -1,5 +1,6 @@
 use crate::PDU_NOT_AVAILABLE;
 
+// TODO: Obsolete, move into slots
 pub mod byte {
     use crate::PDU_NOT_AVAILABLE;
 
@@ -55,6 +56,32 @@ pub mod slots {
 
         pub fn enc(value: u16) -> [u8; 2] {
             (((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) * 8.0) as u16).to_le_bytes()
+        }
+    }
+
+    pub mod temperature {
+        use crate::PDU_NOT_AVAILABLE;
+
+        const SCALE: f32 = 0.03125;
+        const OFFSET: f32 = -273.0;
+        const LIMIT_LOWER: f32 = -273.0;
+        const LIMIT_UPPER: f32 = 1735.0;
+
+        pub fn dec(value: [u8; 2]) -> Option<i16> {
+            if value != [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE] {
+                Some(
+                    ((i16::from_le_bytes(value) as f32 * SCALE + OFFSET)
+                        .clamp(LIMIT_LOWER, LIMIT_UPPER)) as i16,
+                )
+            } else {
+                None
+            }
+        }
+
+        pub fn enc(value: i16) -> [u8; 2] {
+            let value = ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET) / SCALE;
+
+            (value as i16).to_le_bytes()
         }
     }
 }
@@ -755,6 +782,14 @@ mod tests {
         let encoded = slots::rotational_velocity::enc(value);
         let decoded = slots::rotational_velocity::dec(encoded);
         assert_eq!(decoded, Some(900));
+    }
+
+    #[test]
+    fn temperature_test_1() {
+        let value = 25;
+        let encoded = slots::temperature::enc(value);
+        let decoded = slots::temperature::dec(encoded);
+        assert_eq!(decoded, Some(25));
     }
 
     #[test]

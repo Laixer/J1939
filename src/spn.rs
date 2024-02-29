@@ -34,6 +34,7 @@ pub mod byte {
 //     }
 // }
 
+/// Scaling, Limit, Offset, and Transfer Function
 pub mod slots {
     pub mod rotational_velocity {
         use crate::PDU_NOT_AVAILABLE;
@@ -274,7 +275,7 @@ impl ElectronicEngineController1Message {
             engine_torque_mode: EngineTorqueMode::from_value(pdu[0]),
             driver_demand: byte::dec(pdu[1]),
             actual_engine: byte::dec(pdu[2]),
-            rpm: slots::rotational_velocity::dec(pdu[3..5].try_into().unwrap()),
+            rpm: slots::rotational_velocity::dec([pdu[3], pdu[4]]),
             source_addr: crate::decode::spn1483(pdu[5]),
             starter_mode: EngineStarterMode::from_value(pdu[6]),
         }
@@ -516,35 +517,14 @@ impl AmbientConditionsMessage {
             } else {
                 None
             },
-            cab_interior_temperature: if pdu[1] != PDU_NOT_AVAILABLE {
-                Some(
-                    ((i16::from_le_bytes([pdu[1], pdu[2]]) as f32 * 0.03125) as i16 - 273)
-                        .clamp(-273, 1735),
-                )
-            } else {
-                None
-            },
-            ambient_air_temperature: if pdu[3] != PDU_NOT_AVAILABLE {
-                Some(
-                    ((i16::from_le_bytes([pdu[3], pdu[4]]) as f32 * 0.03125) as i16 - 273)
-                        .clamp(-273, 1735),
-                )
-            } else {
-                None
-            },
+            cab_interior_temperature: slots::temperature::dec([pdu[1], pdu[2]]),
+            ambient_air_temperature: slots::temperature::dec([pdu[3], pdu[4]]),
             air_inlet_temperature: if pdu[5] != PDU_NOT_AVAILABLE {
                 Some((pdu[5] as i8 - 40).clamp(-40, 127))
             } else {
                 None
             },
-            road_surface_temperature: if pdu[6] != PDU_NOT_AVAILABLE {
-                Some(
-                    ((i16::from_le_bytes([pdu[6], pdu[7]]) as f32 * 0.03125) as i16 - 273)
-                        .clamp(-273, 1735),
-                )
-            } else {
-                None
-            },
+            road_surface_temperature: slots::temperature::dec([pdu[6], pdu[7]]),
         }
     }
 

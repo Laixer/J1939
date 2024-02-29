@@ -32,6 +32,10 @@ pub mod rpm {
     }
 }
 
+//
+// TimeDate
+//
+
 pub struct TimeDate {
     /// Year.
     pub year: i32,
@@ -73,6 +77,10 @@ impl TimeDate {
     }
 }
 
+//
+// ElectronicEngineController1
+//
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum EngineTorqueMode {
     NoRequest,
@@ -91,7 +99,7 @@ pub enum EngineTorqueMode {
 }
 
 impl EngineTorqueMode {
-    pub fn from_value(value: u8) -> Option<EngineTorqueMode> {
+    pub fn from_value(value: u8) -> Option<Self> {
         if value != PDU_NOT_AVAILABLE {
             let mode = match value & 0b1111 {
                 0b0000 => EngineTorqueMode::NoRequest,
@@ -248,26 +256,134 @@ impl core::fmt::Display for ElectronicEngineController1Message {
     }
 }
 
-#[allow(dead_code)]
-pub struct TorqueSpeedControlMessage {
+//
+// TorqueSpeedControl1
+//
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum OverrideControlMode {
+    OverrideDisabled,
+    SpeedControl,
+    TorqueControl,
+    SpeedTorqueLimitControl,
+}
+
+impl OverrideControlMode {
+    pub fn from_value(value: u8) -> Option<Self> {
+        if value != PDU_NOT_AVAILABLE {
+            let mode = match value & 0b11 {
+                0b00 => OverrideControlMode::OverrideDisabled,
+                0b01 => OverrideControlMode::SpeedControl,
+                0b10 => OverrideControlMode::TorqueControl,
+                0b11 => OverrideControlMode::SpeedTorqueLimitControl,
+                _ => unreachable!(),
+            };
+
+            Some(mode)
+        } else {
+            None
+        }
+    }
+
+    pub fn to_value(mode: Self) -> u8 {
+        match mode {
+            OverrideControlMode::OverrideDisabled => 0b00,
+            OverrideControlMode::SpeedControl => 0b01,
+            OverrideControlMode::TorqueControl => 0b10,
+            OverrideControlMode::SpeedTorqueLimitControl => 0b11,
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum RequestedSpeedControlCondition {
+    TransientOptimizedDriveLineDisengaged,
+    StabilityOptimizedDriveLineDisengaged,
+    StabilityOptimizedDriveLineEngaged1,
+    StabilityOptimizedDriveLineEngaged2,
+}
+
+impl RequestedSpeedControlCondition {
+    pub fn from_value(value: u8) -> Option<Self> {
+        if value != PDU_NOT_AVAILABLE {
+            let condition = match value & 0b11 {
+                0b00 => RequestedSpeedControlCondition::TransientOptimizedDriveLineDisengaged,
+                0b01 => RequestedSpeedControlCondition::StabilityOptimizedDriveLineDisengaged,
+                0b10 => RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged1,
+                0b11 => RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged2,
+                _ => unreachable!(),
+            };
+
+            Some(condition)
+        } else {
+            None
+        }
+    }
+
+    pub fn to_value(condition: Self) -> u8 {
+        match condition {
+            RequestedSpeedControlCondition::TransientOptimizedDriveLineDisengaged => 0b00,
+            RequestedSpeedControlCondition::StabilityOptimizedDriveLineDisengaged => 0b01,
+            RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged1 => 0b10,
+            RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged2 => 0b11,
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum OverrideControlModePriority {
+    HighestPriority,
+    HighPriority,
+    MediumPriority,
+    LowPriority,
+}
+
+impl OverrideControlModePriority {
+    pub fn from_value(value: u8) -> Option<Self> {
+        if value != PDU_NOT_AVAILABLE {
+            let priority = match value & 0b11 {
+                0b00 => OverrideControlModePriority::HighestPriority,
+                0b01 => OverrideControlModePriority::HighPriority,
+                0b10 => OverrideControlModePriority::MediumPriority,
+                0b11 => OverrideControlModePriority::LowPriority,
+                _ => unreachable!(),
+            };
+
+            Some(priority)
+        } else {
+            None
+        }
+    }
+
+    pub fn to_value(priority: Self) -> u8 {
+        match priority {
+            OverrideControlModePriority::HighestPriority => 0b00,
+            OverrideControlModePriority::HighPriority => 0b01,
+            OverrideControlModePriority::MediumPriority => 0b10,
+            OverrideControlModePriority::LowPriority => 0b11,
+        }
+    }
+}
+
+pub struct TorqueSpeedControl1Message {
     /// Override control mode - SPN 695
-    pub override_control_mode: Option<crate::decode::OverrideControlMode>,
+    pub override_control_mode: Option<OverrideControlMode>,
     /// Requested speed control conditions - SPN 696
-    pub speed_control_condition: Option<crate::decode::RequestedSpeedControlCondition>,
+    pub speed_control_condition: Option<RequestedSpeedControlCondition>,
     /// Override control mode priority - SPN 897
-    pub control_mode_priority: Option<crate::decode::OverrideControlModePriority>,
+    pub control_mode_priority: Option<OverrideControlModePriority>,
     /// Requested speed or speed limit - SPN 898
     pub speed: Option<u16>,
     /// Requested torque or torque limit - SPN 518
     pub torque: Option<u8>,
 }
 
-impl TorqueSpeedControlMessage {
+impl TorqueSpeedControl1Message {
     pub fn from_pdu(pdu: &[u8]) -> Self {
         Self {
-            override_control_mode: crate::decode::spn695(pdu[0] & 0b11),
-            speed_control_condition: crate::decode::spn696(pdu[0] >> 2 & 0b11),
-            control_mode_priority: crate::decode::spn897(pdu[0] >> 4 & 0b11),
+            override_control_mode: OverrideControlMode::from_value(pdu[0] & 0b11),
+            speed_control_condition: RequestedSpeedControlCondition::from_value(pdu[0] >> 2 & 0b11),
+            control_mode_priority: OverrideControlModePriority::from_value(pdu[0] >> 4 & 0b11),
             speed: rpm::dec(&pdu[1..3]),
             torque: if pdu[3] != PDU_NOT_AVAILABLE {
                 Some(pdu[3])
@@ -278,32 +394,17 @@ impl TorqueSpeedControlMessage {
     }
 
     pub fn to_pdu(&self) -> [u8; 8] {
-        let override_control_mode = match self.override_control_mode {
-            Some(crate::decode::OverrideControlMode::OverrideDisabled) => 0b00,
-            Some(crate::decode::OverrideControlMode::SpeedControl) => 0b01,
-            Some(crate::decode::OverrideControlMode::TorqueControl) => 0b10,
-            Some(crate::decode::OverrideControlMode::SpeedTorqueLimitControl) => 0b11,
-            None => 0b00,
-        };
-
-        let speed_control_condition = match self.speed_control_condition {
-            Some(crate::decode::RequestedSpeedControlCondition::TransientOptimizedDriveLineDisengaged) => 0b00,
-            Some(crate::decode::RequestedSpeedControlCondition::StabilityOptimizedDriveLineDisengaged) => 0b01,
-            Some(crate::decode::RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged1) => 0b10,
-            Some(crate::decode::RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged2) => 0b11,
-            None => 0b00,
-        };
-
-        let control_mode_priority = match self.control_mode_priority {
-            Some(crate::decode::OverrideControlModePriority::HighestPriority) => 0b00,
-            Some(crate::decode::OverrideControlModePriority::HighPriority) => 0b01,
-            Some(crate::decode::OverrideControlModePriority::MediumPriority) => 0b10,
-            Some(crate::decode::OverrideControlModePriority::LowPriority) => 0b11,
-            None => 0b00,
-        };
-
         [
-            override_control_mode | speed_control_condition << 2 | control_mode_priority << 4,
+            self.override_control_mode
+                .map_or(PDU_NOT_AVAILABLE, OverrideControlMode::to_value)
+                | self
+                    .speed_control_condition
+                    .map_or(PDU_NOT_AVAILABLE, RequestedSpeedControlCondition::to_value)
+                    << 2
+                | self
+                    .control_mode_priority
+                    .map_or(PDU_NOT_AVAILABLE, OverrideControlModePriority::to_value)
+                    << 4,
             self.speed
                 .map_or(PDU_NOT_AVAILABLE, |speed| rpm::enc(speed)[0]),
             self.speed
@@ -317,7 +418,7 @@ impl TorqueSpeedControlMessage {
     }
 }
 
-impl core::fmt::Display for TorqueSpeedControlMessage {
+impl core::fmt::Display for TorqueSpeedControl1Message {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(
             f,
@@ -403,31 +504,29 @@ mod tests {
 
     #[test]
     fn torque_speed_control_message_1() {
-        let torque_speed_encoded = TorqueSpeedControlMessage {
-            override_control_mode: Some(crate::decode::OverrideControlMode::SpeedControl),
+        let torque_speed_encoded = TorqueSpeedControl1Message {
+            override_control_mode: Some(OverrideControlMode::SpeedControl),
             speed_control_condition: Some(
-                crate::decode::RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged1,
+                RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged1,
             ),
-            control_mode_priority: Some(crate::decode::OverrideControlModePriority::MediumPriority),
+            control_mode_priority: Some(OverrideControlModePriority::MediumPriority),
             speed: Some(1234),
             torque: Some(56),
         }
         .to_pdu();
-        let torque_speed_decoded = TorqueSpeedControlMessage::from_pdu(&torque_speed_encoded);
+        let torque_speed_decoded = TorqueSpeedControl1Message::from_pdu(&torque_speed_encoded);
 
         assert_eq!(
             torque_speed_decoded.override_control_mode,
-            Some(crate::decode::OverrideControlMode::SpeedControl)
+            Some(OverrideControlMode::SpeedControl)
         );
         assert_eq!(
             torque_speed_decoded.speed_control_condition,
-            Some(
-                crate::decode::RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged1
-            )
+            Some(RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged1)
         );
         assert_eq!(
             torque_speed_decoded.control_mode_priority,
-            Some(crate::decode::OverrideControlModePriority::MediumPriority)
+            Some(OverrideControlModePriority::MediumPriority)
         );
         assert_eq!(torque_speed_decoded.speed, Some(1234));
         assert_eq!(torque_speed_decoded.torque, Some(56));

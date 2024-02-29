@@ -436,6 +436,7 @@ impl core::fmt::Display for TorqueSpeedControl1Message {
 // AmbientConditions
 //
 
+// TODO: Not tested
 pub struct AmbientConditionsMessage {
     /// Barometric pressure.
     pub barometric_pressure: Option<u8>,
@@ -522,6 +523,91 @@ impl core::fmt::Display for AmbientConditionsMessage {
             self.ambient_air_temperature.unwrap_or(0),
             self.air_inlet_temperature.unwrap_or(0),
             self.road_surface_temperature.unwrap_or(0)
+        )
+    }
+}
+
+//
+// VehiclePosition
+//
+
+// TODO: Not tested
+pub struct VehiclePositionMessage {
+    /// Latitude.
+    pub latitude: Option<f32>,
+    /// Longitude.
+    pub longitude: Option<f32>,
+}
+
+impl VehiclePositionMessage {
+    pub fn from_pdu(pdu: &[u8]) -> Self {
+        Self {
+            latitude: if pdu[0] != PDU_NOT_AVAILABLE {
+                Some((i32::from_le_bytes([pdu[0], pdu[1], pdu[2], pdu[3]]) - 210) as f32 * 1e-7)
+            } else {
+                None
+            },
+            longitude: if pdu[4] != PDU_NOT_AVAILABLE {
+                Some((i32::from_le_bytes([pdu[4], pdu[5], pdu[6], pdu[7]]) - 210) as f32 * 1e-7)
+            } else {
+                None
+            },
+        }
+    }
+
+    pub fn to_pdu(&self) -> [u8; 8] {
+        [
+            if let Some(latitude) = self.latitude {
+                ((latitude * 1e7) as i32 + 210).to_le_bytes()[0]
+            } else {
+                PDU_NOT_AVAILABLE
+            },
+            if let Some(latitude) = self.latitude {
+                ((latitude * 1e7) as i32 + 210).to_le_bytes()[1]
+            } else {
+                PDU_NOT_AVAILABLE
+            },
+            if let Some(latitude) = self.latitude {
+                ((latitude * 1e7) as i32 + 210).to_le_bytes()[2]
+            } else {
+                PDU_NOT_AVAILABLE
+            },
+            if let Some(latitude) = self.latitude {
+                ((latitude * 1e7) as i32 + 210).to_le_bytes()[3]
+            } else {
+                PDU_NOT_AVAILABLE
+            },
+            if let Some(longitude) = self.longitude {
+                ((longitude * 1e7) as i32 + 210).to_le_bytes()[0]
+            } else {
+                PDU_NOT_AVAILABLE
+            },
+            if let Some(longitude) = self.longitude {
+                ((longitude * 1e7) as i32 + 210).to_le_bytes()[1]
+            } else {
+                PDU_NOT_AVAILABLE
+            },
+            if let Some(longitude) = self.longitude {
+                ((longitude * 1e7) as i32 + 210).to_le_bytes()[2]
+            } else {
+                PDU_NOT_AVAILABLE
+            },
+            if let Some(longitude) = self.longitude {
+                ((longitude * 1e7) as i32 + 210).to_le_bytes()[3]
+            } else {
+                PDU_NOT_AVAILABLE
+            },
+        ]
+    }
+}
+
+impl core::fmt::Display for VehiclePositionMessage {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "Latitude: {:?}; Longitude: {:?}",
+            self.latitude.unwrap_or(0.0),
+            self.longitude.unwrap_or(0.0)
         )
     }
 }

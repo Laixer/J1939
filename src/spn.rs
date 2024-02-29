@@ -105,6 +105,29 @@ pub mod slots {
         }
     }
 
+    pub mod temperature2 {
+        use crate::PDU_NOT_AVAILABLE;
+
+        const SCALE: f32 = 1.0;
+        const OFFSET: f32 = -40.0;
+        const LIMIT_LOWER: f32 = -40.0;
+        const LIMIT_UPPER: f32 = 127.0;
+
+        pub fn dec(value: u8) -> Option<i8> {
+            if value != PDU_NOT_AVAILABLE {
+                Some(((value as f32 * SCALE + OFFSET).clamp(LIMIT_LOWER, LIMIT_UPPER)) as i8)
+            } else {
+                None
+            }
+        }
+
+        pub fn enc(value: i8) -> u8 {
+            let value = ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET) / SCALE;
+
+            value as u8
+        }
+    }
+
     pub mod position_level {
         use crate::PDU_NOT_AVAILABLE;
 
@@ -715,11 +738,7 @@ impl AmbientConditionsMessage {
             },
             cab_interior_temperature: slots::temperature::dec([pdu[1], pdu[2]]),
             ambient_air_temperature: slots::temperature::dec([pdu[3], pdu[4]]),
-            air_inlet_temperature: if pdu[5] != PDU_NOT_AVAILABLE {
-                Some((pdu[5] as i8 - 40).clamp(-40, 127))
-            } else {
-                None
-            },
+            air_inlet_temperature: slots::temperature2::dec(pdu[5]),
             road_surface_temperature: slots::temperature::dec([pdu[6], pdu[7]]),
         }
     }
@@ -747,11 +766,8 @@ impl AmbientConditionsMessage {
                 [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE],
                 slots::temperature::enc,
             )[1],
-            if let Some(temperature) = self.air_inlet_temperature {
-                (temperature + 40) as u8
-            } else {
-                PDU_NOT_AVAILABLE
-            },
+            self.air_inlet_temperature
+                .map_or(PDU_NOT_AVAILABLE, slots::temperature2::enc),
             self.road_surface_temperature.map_or(
                 [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE],
                 slots::temperature::enc,

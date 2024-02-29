@@ -17,36 +17,44 @@ pub mod byte {
 }
 
 // TODO: Obsolete
-pub mod rpm {
-    use crate::PDU_NOT_AVAILABLE;
+// pub mod rpm {
+//     use crate::PDU_NOT_AVAILABLE;
 
-    pub fn enc(value: u16) -> [u8; 2] {
-        (value * 8).to_le_bytes()
-    }
+//     pub fn enc(value: u16) -> [u8; 2] {
+//         (value * 8).to_le_bytes()
+//     }
 
-    pub fn dec(value: &[u8]) -> Option<u16> {
-        if value != [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE] {
-            Some((u16::from_le_bytes([value[0], value[1]]) as f32 * 0.125) as u16)
-        } else {
-            None
-        }
-    }
-}
+//     pub fn dec(value: &[u8]) -> Option<u16> {
+//         if value != [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE] {
+//             Some((u16::from_le_bytes([value[0], value[1]]) as f32 * 0.125) as u16)
+//         } else {
+//             None
+//         }
+//     }
+// }
 
 pub mod slots {
     pub mod rotational_velocity {
         use crate::PDU_NOT_AVAILABLE;
 
+        const SCALE: f32 = 0.125;
+        const _OFFSET: f32 = 0.0;
+        const LIMIT_LOWER: f32 = 0.0;
+        const LIMIT_UPPER: f32 = 8031.875;
+
         pub fn dec(value: [u8; 2]) -> Option<u16> {
             if value != [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE] {
-                Some((u16::from_le_bytes(value) as f32 * 0.125).clamp(0.0, 8031.875) as u16)
+                Some(
+                    (u16::from_le_bytes(value) as f32 * SCALE).clamp(LIMIT_LOWER, LIMIT_UPPER)
+                        as u16,
+                )
             } else {
                 None
             }
         }
 
         pub fn enc(value: u16) -> [u8; 2] {
-            (((value as f32).clamp(0.0, 8031.875) * 8.0) as u16).to_le_bytes()
+            (((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) * 8.0) as u16).to_le_bytes()
         }
     }
 }
@@ -405,7 +413,7 @@ impl TorqueSpeedControl1Message {
             override_control_mode: OverrideControlMode::from_value(pdu[0] & 0b11),
             speed_control_condition: RequestedSpeedControlCondition::from_value(pdu[0] >> 2 & 0b11),
             control_mode_priority: OverrideControlModePriority::from_value(pdu[0] >> 4 & 0b11),
-            speed: rpm::dec(&pdu[1..3]),
+            speed: slots::rotational_velocity::dec(pdu[1..3].try_into().unwrap()),
             torque: if pdu[3] != PDU_NOT_AVAILABLE {
                 Some(pdu[3])
             } else {
@@ -426,10 +434,12 @@ impl TorqueSpeedControl1Message {
                     .control_mode_priority
                     .map_or(PDU_NOT_AVAILABLE, OverrideControlModePriority::to_value)
                     << 4,
-            self.speed
-                .map_or(PDU_NOT_AVAILABLE, |speed| rpm::enc(speed)[0]),
-            self.speed
-                .map_or(PDU_NOT_AVAILABLE, |speed| rpm::enc(speed)[1]),
+            self.speed.map_or(PDU_NOT_AVAILABLE, |speed| {
+                slots::rotational_velocity::enc(speed)[0]
+            }),
+            self.speed.map_or(PDU_NOT_AVAILABLE, |speed| {
+                slots::rotational_velocity::enc(speed)[1]
+            }),
             self.torque.unwrap_or(PDU_NOT_AVAILABLE),
             PDU_NOT_AVAILABLE,
             PDU_NOT_AVAILABLE,

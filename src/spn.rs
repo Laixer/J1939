@@ -1,21 +1,21 @@
 use crate::PDU_NOT_AVAILABLE;
 
 // TODO: Obsolete, move into slots
-pub mod byte {
-    use crate::PDU_NOT_AVAILABLE;
+// pub mod byte {
+//     use crate::PDU_NOT_AVAILABLE;
 
-    pub fn enc(value: u8) -> u8 {
-        value + 125
-    }
+//     pub fn enc(value: u8) -> u8 {
+//         value + 125
+//     }
 
-    pub fn dec(value: u8) -> Option<u8> {
-        if value != PDU_NOT_AVAILABLE {
-            Some(value - 125)
-        } else {
-            None
-        }
-    }
-}
+//     pub fn dec(value: u8) -> Option<u8> {
+//         if value != PDU_NOT_AVAILABLE {
+//             Some(value - 125)
+//         } else {
+//             None
+//         }
+//     }
+// }
 
 // TODO: Obsolete
 // pub mod rpm {
@@ -104,6 +104,27 @@ pub mod slots {
 
         pub fn enc(value: u8) -> u8 {
             ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) / SCALE) as u8
+        }
+    }
+
+    pub mod position_level2 {
+        use crate::PDU_NOT_AVAILABLE;
+
+        const SCALE: f32 = 1.0;
+        const OFFSET: f32 = -125.0;
+        const LIMIT_LOWER: f32 = -125.0;
+        const LIMIT_UPPER: f32 = 125.0;
+
+        pub fn dec(value: u8) -> Option<u8> {
+            if value != PDU_NOT_AVAILABLE {
+                Some((value as f32 * SCALE + OFFSET).clamp(LIMIT_LOWER, LIMIT_UPPER) as u8)
+            } else {
+                None
+            }
+        }
+
+        pub fn enc(value: u8) -> u8 {
+            ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET / SCALE) as u8
         }
     }
 }
@@ -294,8 +315,8 @@ impl ElectronicEngineController1Message {
     pub fn from_pdu(pdu: &[u8]) -> Self {
         Self {
             engine_torque_mode: EngineTorqueMode::from_value(pdu[0]),
-            driver_demand: byte::dec(pdu[1]),
-            actual_engine: byte::dec(pdu[2]),
+            driver_demand: slots::position_level2::dec(pdu[1]),
+            actual_engine: slots::position_level2::dec(pdu[2]),
             rpm: slots::rotational_velocity::dec([pdu[3], pdu[4]]),
             source_addr: crate::decode::spn1483(pdu[5]),
             starter_mode: EngineStarterMode::from_value(pdu[6]),
@@ -306,8 +327,10 @@ impl ElectronicEngineController1Message {
         [
             self.engine_torque_mode
                 .map_or(PDU_NOT_AVAILABLE, EngineTorqueMode::to_value),
-            self.driver_demand.map_or(PDU_NOT_AVAILABLE, byte::enc),
-            self.actual_engine.map_or(PDU_NOT_AVAILABLE, byte::enc),
+            self.driver_demand
+                .map_or(PDU_NOT_AVAILABLE, slots::position_level2::enc),
+            self.actual_engine
+                .map_or(PDU_NOT_AVAILABLE, slots::position_level2::enc),
             self.rpm
                 .map_or([0xff, 0xff], slots::rotational_velocity::enc)[0],
             self.rpm

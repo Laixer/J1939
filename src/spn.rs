@@ -325,6 +325,27 @@ pub mod slots {
             (RESOLUTION.enc(value as f32) as u32).to_le_bytes()
         }
     }
+
+    pub mod time {
+        const RESOLUTION: super::Param = super::Param {
+            scale: 0.05,
+            offset: 0.0,
+            limit_lower: 0.0,
+            limit_upper: 210554060.75,
+        };
+
+        pub fn dec(value: [u8; 4]) -> Option<u32> {
+            if value == [crate::PDU_NOT_AVAILABLE; 4] {
+                return None;
+            }
+
+            Some(RESOLUTION.dec(u32::from_le_bytes(value) as f32) as u32)
+        }
+
+        pub fn enc(value: u32) -> [u8; 4] {
+            (RESOLUTION.enc(value as f32) as u32).to_le_bytes()
+        }
+    }
 }
 
 //
@@ -1343,6 +1364,116 @@ impl core::fmt::Display for ElectronicEngineController3Message {
             self.nominal_friction_percent_torque.unwrap_or(0),
             self.engines_desired_operating_speed.unwrap_or(0),
             self.engines_desired_operating_speed_asymmetry_adjustment.unwrap_or(0)
+        )
+    }
+}
+
+//
+// ECU History
+//
+
+pub struct ECUHistory {
+    /// Total distance accumulated over the life of the ECU. When the ECU is replaced this value
+    /// shall be reset.
+    pub total_ecu_distance: Option<u32>,
+    /// Total time accumulated over the life of the ECU, from ignition switch ON to ignition
+    /// switch OFF. When the ECU is replaced this value shall be reset.
+    pub total_ecu_run_time: Option<u32>,
+}
+
+impl ECUHistory {
+    pub fn from_pdu(pdu: &[u8]) -> Self {
+        Self {
+            total_ecu_distance: slots::distance::dec([pdu[0], pdu[1], pdu[2], pdu[3]]),
+            total_ecu_run_time: slots::time::dec([pdu[4], pdu[5], pdu[6], pdu[7]]),
+        }
+    }
+
+    pub fn to_pdu(&self) -> [u8; 8] {
+        [
+            self.total_ecu_distance.map_or(
+                [
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                ],
+                slots::distance::enc,
+            )[0],
+            self.total_ecu_distance.map_or(
+                [
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                ],
+                slots::distance::enc,
+            )[1],
+            self.total_ecu_distance.map_or(
+                [
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                ],
+                slots::distance::enc,
+            )[2],
+            self.total_ecu_distance.map_or(
+                [
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                ],
+                slots::distance::enc,
+            )[3],
+            self.total_ecu_run_time.map_or(
+                [
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                ],
+                slots::time::enc,
+            )[0],
+            self.total_ecu_run_time.map_or(
+                [
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                ],
+                slots::time::enc,
+            )[1],
+            self.total_ecu_run_time.map_or(
+                [
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                ],
+                slots::time::enc,
+            )[2],
+            self.total_ecu_run_time.map_or(
+                [
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                    PDU_NOT_AVAILABLE,
+                ],
+                slots::time::enc,
+            )[3],
+        ]
+    }
+}
+
+impl core::fmt::Display for ECUHistory {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "Total ECU distance: {} km; Total ECU run time: {} s",
+            self.total_ecu_distance.unwrap_or(0),
+            self.total_ecu_run_time.unwrap_or(0)
         )
     }
 }

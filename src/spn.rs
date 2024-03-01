@@ -55,6 +55,27 @@ pub mod slots {
         }
     }
 
+    pub mod count {
+        use crate::PDU_NOT_AVAILABLE;
+
+        const SCALE: f32 = 1.0;
+        const _OFFSET: f32 = 0.0;
+        const LIMIT_LOWER: f32 = 0.0;
+        const LIMIT_UPPER: f32 = 250.0;
+
+        pub fn dec(value: u8) -> Option<u8> {
+            if value != PDU_NOT_AVAILABLE {
+                Some((value as f32 * SCALE).clamp(LIMIT_LOWER, LIMIT_UPPER) as u8)
+            } else {
+                None
+            }
+        }
+
+        pub fn enc(value: u8) -> u8 {
+            ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER)) as u8
+        }
+    }
+
     pub mod rotational_velocity {
         use crate::PDU_NOT_AVAILABLE;
 
@@ -1263,6 +1284,64 @@ impl core::fmt::Display for VehicleDistanceMessage {
             "Trip distance: {} km; Total vehicle distance: {} km",
             self.trip_distance.unwrap_or(0),
             self.total_vehicle_distance.unwrap_or(0)
+        )
+    }
+}
+
+//
+// Electronic Engine Controller 3
+//
+
+pub struct ElectronicEngineController3Message {
+    /// Engine's Desired Operating Speed Asymmetry Adjustment.
+    pub nominal_friction_percent_torque: Option<u8>,
+    /// An indication by the engine of the optimal operating speed of the engine
+    /// for the current existing conditions.
+    pub engines_desired_operating_speed: Option<u16>,
+    /// This byte is utilized in transmission gear selection routines and indicates the engine's
+    /// preference of lower versus higher engine speeds should its desired speed not be achievable.
+    pub engines_desired_operating_speed_asymmetry_adjustment: Option<u8>,
+}
+
+impl ElectronicEngineController3Message {
+    pub fn from_pdu(pdu: &[u8]) -> Self {
+        Self {
+            nominal_friction_percent_torque: slots::position_level2::dec(pdu[0]),
+            engines_desired_operating_speed: slots::rotational_velocity::dec([pdu[1], pdu[2]]),
+            engines_desired_operating_speed_asymmetry_adjustment: slots::count::dec(pdu[3]),
+        }
+    }
+
+    pub fn to_pdu(&self) -> [u8; 8] {
+        [
+            self.nominal_friction_percent_torque
+                .map_or(PDU_NOT_AVAILABLE, slots::position_level2::enc),
+            self.engines_desired_operating_speed.map_or(
+                [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE],
+                slots::rotational_velocity::enc,
+            )[0],
+            self.engines_desired_operating_speed.map_or(
+                [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE],
+                slots::rotational_velocity::enc,
+            )[1],
+            self.engines_desired_operating_speed_asymmetry_adjustment
+                .map_or(PDU_NOT_AVAILABLE, slots::count::enc),
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+        ]
+    }
+}
+
+impl core::fmt::Display for ElectronicEngineController3Message {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "Nominal friction percent torque: {}%; Engines desired operating speed: {} RPM; Engines desired operating speed asymmetry adjustment: {}",
+            self.nominal_friction_percent_torque.unwrap_or(0),
+            self.engines_desired_operating_speed.unwrap_or(0),
+            self.engines_desired_operating_speed_asymmetry_adjustment.unwrap_or(0)
         )
     }
 }

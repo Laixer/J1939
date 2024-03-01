@@ -989,6 +989,16 @@ impl CabIlluminationMessage {
     }
 }
 
+impl core::fmt::Display for CabIlluminationMessage {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "Illumination brightness percent: {}%",
+            self.illumination_brightness_percent.unwrap_or(0)
+        )
+    }
+}
+
 //
 // Fan Drive
 //
@@ -1078,6 +1088,117 @@ impl FanDriveMessage {
             fan_drive_state: FanDriveState::from_value(pdu[1]),
             fan_speed: slots::rotational_velocity::dec([pdu[2], pdu[3]]),
         }
+    }
+
+    pub fn to_pdu(&self) -> [u8; 8] {
+        [
+            slots::position_level::enc(self.estimated_percent_fan_speed),
+            FanDriveState::to_value(self.fan_drive_state.unwrap_or(FanDriveState::FanOff)),
+            slots::rotational_velocity::enc(self.fan_speed)[0],
+            slots::rotational_velocity::enc(self.fan_speed)[1],
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+        ]
+    }
+}
+
+impl core::fmt::Display for FanDriveMessage {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "Estimated percent fan speed: {}%; Fan drive state: {:?}; Fan speed: {} RPM",
+            self.estimated_percent_fan_speed.unwrap_or(0),
+            self.fan_drive_state.unwrap_or(FanDriveState::FanOff),
+            self.fan_speed.unwrap_or(0)
+        )
+    }
+}
+
+//
+// Shutdown
+//
+
+pub struct ShutdownMessage {
+    pub idle_shutdown_has_shutdown_engine: Option<bool>,
+    pub idle_shutdown_driver_alert_mode: Option<bool>,
+    pub idle_shutdown_timer_override: Option<bool>,
+    pub idle_shutdown_timer_state: Option<bool>,
+    pub idle_shutdown_timer_function: Option<bool>,
+    pub ac_high_pressure_fan_switch: Option<bool>,
+    pub refrigerant_low_pressure_switch: Option<bool>,
+    pub refrigerant_high_pressure_switch: Option<bool>,
+    pub wait_to_start_lamp: Option<bool>,
+    pub engine_protection_system_has_shutdown_engine: Option<bool>,
+    pub engine_protection_system_approaching_shutdown: Option<bool>,
+    pub engine_protection_system_timer_override: Option<bool>,
+    pub engine_protection_system_timer_state: Option<bool>,
+    pub engine_protection_system_configuration: Option<bool>,
+}
+
+impl ShutdownMessage {
+    pub fn from_pdu(pdu: &[u8]) -> Self {
+        Self {
+            idle_shutdown_has_shutdown_engine: slots::bool_from_value(pdu[0]),
+            idle_shutdown_driver_alert_mode: slots::bool_from_value(pdu[0] >> 2),
+            idle_shutdown_timer_override: slots::bool_from_value(pdu[0] >> 4),
+            idle_shutdown_timer_state: slots::bool_from_value(pdu[0] >> 6),
+            idle_shutdown_timer_function: slots::bool_from_value(pdu[1] >> 6),
+            ac_high_pressure_fan_switch: slots::bool_from_value(pdu[2]),
+            refrigerant_low_pressure_switch: slots::bool_from_value(pdu[2] >> 2),
+            refrigerant_high_pressure_switch: slots::bool_from_value(pdu[2] >> 4),
+            wait_to_start_lamp: slots::bool_from_value(pdu[3]),
+            engine_protection_system_has_shutdown_engine: slots::bool_from_value(pdu[4]),
+            engine_protection_system_approaching_shutdown: slots::bool_from_value(pdu[4] >> 2),
+            engine_protection_system_timer_override: slots::bool_from_value(pdu[4] >> 4),
+            engine_protection_system_timer_state: slots::bool_from_value(pdu[4] >> 6),
+            engine_protection_system_configuration: slots::bool_from_value(pdu[5] >> 6),
+        }
+    }
+
+    pub fn to_pdu(&self) -> [u8; 8] {
+        [
+            slots::bool_to_value(self.idle_shutdown_has_shutdown_engine)
+                | slots::bool_to_value(self.idle_shutdown_driver_alert_mode) << 2
+                | slots::bool_to_value(self.idle_shutdown_timer_override) << 4
+                | slots::bool_to_value(self.idle_shutdown_timer_state) << 6,
+            slots::bool_to_value(self.idle_shutdown_timer_function) << 6,
+            slots::bool_to_value(self.ac_high_pressure_fan_switch)
+                | slots::bool_to_value(self.refrigerant_low_pressure_switch) << 2
+                | slots::bool_to_value(self.refrigerant_high_pressure_switch) << 4,
+            slots::bool_to_value(self.wait_to_start_lamp),
+            slots::bool_to_value(self.engine_protection_system_has_shutdown_engine)
+                | slots::bool_to_value(self.engine_protection_system_approaching_shutdown) << 2
+                | slots::bool_to_value(self.engine_protection_system_timer_override) << 4
+                | slots::bool_to_value(self.engine_protection_system_timer_state) << 6,
+            slots::bool_to_value(self.engine_protection_system_configuration) << 6,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+        ]
+    }
+}
+
+impl core::fmt::Display for ShutdownMessage {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "Idle shutdown has shutdown engine: {:?}; Idle shutdown driver alert mode: {:?}; Idle shutdown timer override: {:?}; Idle shutdown timer state: {:?}; Idle shutdown timer function: {:?}; AC high pressure fan switch: {:?}; Refrigerant low pressure switch: {:?}; Refrigerant high pressure switch: {:?}; Wait to start lamp: {:?}; Engine protection system has shutdown engine: {:?}; Engine protection system approaching shutdown: {:?}; Engine protection system timer override: {:?}; Engine protection system timer state: {:?}; Engine protection system configuration: {:?}",
+            self.idle_shutdown_has_shutdown_engine,
+            self.idle_shutdown_driver_alert_mode,
+            self.idle_shutdown_timer_override,
+            self.idle_shutdown_timer_state,
+            self.idle_shutdown_timer_function,
+            self.ac_high_pressure_fan_switch,
+            self.refrigerant_low_pressure_switch,
+            self.refrigerant_high_pressure_switch,
+            self.wait_to_start_lamp,
+            self.engine_protection_system_has_shutdown_engine,
+            self.engine_protection_system_approaching_shutdown,
+            self.engine_protection_system_timer_override,
+            self.engine_protection_system_timer_state,
+            self.engine_protection_system_configuration
+        )
     }
 }
 

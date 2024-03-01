@@ -1209,7 +1209,7 @@ impl core::fmt::Display for ShutdownMessage {
 // Power Takeoff Information
 //
 
-pub struct PowerTakeoffInformation {
+pub struct PowerTakeoffInformationMessage {
     /// Temperature of lubricant in device used to transmit engine power to auxiliary equipment.
     pub power_takeoff_oil_temperature: Option<i8>,
     /// Rotational velocity of device used to transmit engine power to auxiliary equipment.
@@ -1238,17 +1238,15 @@ pub struct PowerTakeoffInformation {
     pub pto_accelerate_switch: Option<bool>,
 }
 
-impl PowerTakeoffInformation {
+impl PowerTakeoffInformationMessage {
     pub fn from_pdu(pdu: &[u8]) -> Self {
         Self {
             power_takeoff_oil_temperature: slots::temperature2::dec(pdu[0]),
             power_takeoff_speed: slots::rotational_velocity::dec([pdu[1], pdu[2]]),
             power_takeoff_set_speed: slots::rotational_velocity::dec([pdu[3], pdu[4]]),
-            //
             pto_enable_switch: slots::bool_from_value(pdu[5]),
             remote_pto_preprogrammed_speed_control_switch: slots::bool_from_value(pdu[5] >> 2),
             remote_pto_variable_speed_control_switch: slots::bool_from_value(pdu[5] >> 4),
-            //
             pto_set_switch: slots::bool_from_value(pdu[6]),
             pto_coast_decelerate_switch: slots::bool_from_value(pdu[6] >> 2),
             pto_resume_switch: slots::bool_from_value(pdu[6] >> 4),
@@ -1275,7 +1273,7 @@ impl PowerTakeoffInformation {
     }
 }
 
-impl core::fmt::Display for PowerTakeoffInformation {
+impl core::fmt::Display for PowerTakeoffInformationMessage {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(
             f,
@@ -1290,6 +1288,139 @@ impl core::fmt::Display for PowerTakeoffInformation {
             self.pto_coast_decelerate_switch,
             self.pto_resume_switch,
             self.pto_accelerate_switch
+        )
+    }
+}
+
+//
+// Engine Temperature 1
+//
+
+pub struct EngineTemperature1Message {
+    /// Temperature of liquid found in engine cooling system.
+    pub engine_coolant_temperature: Option<i8>,
+    /// Temperature of fuel entering injectors.
+    pub fuel_temperature: Option<i8>,
+    /// Temperature of the engine lubricant.
+    pub engine_oil_temperature: Option<i16>,
+    /// Temperature of the turbocharger lubricant.
+    pub turbo_oil_temperature: Option<i16>,
+    /// Temperature of liquid found in the intercooler located after the turbocharger.
+    pub engine_intercooler_temperature: Option<i8>,
+    /// The current position of the thermostat used to regulate the
+    /// temperature of the engine intercooler. A value of 0% represents the thermostat being completely closed and 100% represents the
+    /// thermostat being completely open.
+    pub engine_intercooler_thermostat_opening: Option<u8>,
+}
+
+impl EngineTemperature1Message {
+    pub fn from_pdu(pdu: &[u8]) -> Self {
+        Self {
+            engine_coolant_temperature: slots::temperature2::dec(pdu[0]),
+            fuel_temperature: slots::temperature2::dec(pdu[1]),
+            engine_oil_temperature: slots::temperature::dec([pdu[2], pdu[3]]),
+            turbo_oil_temperature: slots::temperature::dec([pdu[4], pdu[5]]),
+            engine_intercooler_temperature: slots::temperature2::dec(pdu[6]),
+            engine_intercooler_thermostat_opening: slots::position_level::dec(pdu[7]),
+        }
+    }
+
+    pub fn to_pdu(&self) -> [u8; 8] {
+        [
+            slots::temperature2::enc(self.engine_coolant_temperature),
+            slots::temperature2::enc(self.fuel_temperature),
+            slots::temperature::enc(self.engine_oil_temperature)[0],
+            slots::temperature::enc(self.engine_oil_temperature)[1],
+            slots::temperature::enc(self.turbo_oil_temperature)[0],
+            slots::temperature::enc(self.turbo_oil_temperature)[1],
+            slots::temperature2::enc(self.engine_intercooler_temperature),
+            slots::position_level::enc(self.engine_intercooler_thermostat_opening),
+        ]
+    }
+}
+
+impl core::fmt::Display for EngineTemperature1Message {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "Engine coolant temperature: {}°C; Fuel temperature: {}°C; Engine oil temperature: {}°C; Turbo oil temperature: {}°C; Engine intercooler temperature: {}°C; Engine intercooler thermostat opening: {}%",
+            self.engine_coolant_temperature.unwrap_or(0),
+            self.fuel_temperature.unwrap_or(0),
+            self.engine_oil_temperature.unwrap_or(0),
+            self.turbo_oil_temperature.unwrap_or(0),
+            self.engine_intercooler_temperature.unwrap_or(0),
+            self.engine_intercooler_thermostat_opening.unwrap_or(0)
+        )
+    }
+}
+
+//
+// Inlet/Exhaust Conditions 1
+//
+
+pub struct InletExhaustConditions1Message {
+    /// Exhaust back pressure as a result of particle accumulation on filter media placed in the exhaust stream.
+    pub particulate_trap_inlet_pressure: Option<u8>,
+    /// Gage pressure of air measured downstream on the compressor discharge side of the turbocharger.
+    /// See also SPNs 1127-1130 for alternate range and resolution. If there is one boost pressure to report and this range and resolution is
+    /// adequate, this parameter should be used.
+    pub boost_pressure: Option<u8>,
+    /// Temperature of pre-combustion air found in intake manifold of engine air supply system.
+    pub intake_manifold_temperature: Option<i8>,
+    /// Absolute air pressure at inlet to intake manifold or air box.
+    pub air_inlet_pressure: Option<u8>,
+    /// Change in engine air system pressure, measured across the filter, due to the
+    /// filter and any accumulation of solid foreign matter on or in the filter. This is the measurement of the first filter in a multiple air filter
+    /// system. In a single air filter application, this is the only SPN used. Filter numbering follows the guidelines noted in section, Naming
+    /// Convention For Engine Parameters.
+    pub air_filter_differential_pressure: Option<u8>,
+    /// Temperature of combustion byproducts leaving the engine. See SPNs 2433 and
+    /// 2434 for engines with more than one exhause gas temperature measurement.
+    pub exhaust_gas_temperature: Option<i16>,
+    /// Change in coolant pressure, measured across the filter, due to the filter
+    /// and any accumulation of solid or semisolid matter on or in the filter.
+    pub coolant_filter_differential_pressure: Option<u8>,
+}
+
+impl InletExhaustConditions1Message {
+    pub fn from_pdu(pdu: &[u8]) -> Self {
+        Self {
+            particulate_trap_inlet_pressure: None,
+            boost_pressure: slots::pressure3::dec(pdu[1]),
+            intake_manifold_temperature: slots::temperature2::dec(pdu[2]),
+            air_inlet_pressure: slots::pressure3::dec(pdu[3]),
+            air_filter_differential_pressure: slots::pressure2::dec(pdu[4]),
+            exhaust_gas_temperature: slots::temperature::dec([pdu[5], pdu[6]]),
+            coolant_filter_differential_pressure: None,
+        }
+    }
+
+    pub fn to_pdu(&self) -> [u8; 8] {
+        [
+            PDU_NOT_AVAILABLE,
+            slots::pressure3::enc(self.boost_pressure),
+            slots::temperature2::enc(self.intake_manifold_temperature),
+            slots::pressure3::enc(self.air_inlet_pressure),
+            slots::pressure2::enc(self.air_filter_differential_pressure),
+            slots::temperature::enc(self.exhaust_gas_temperature)[0],
+            slots::temperature::enc(self.exhaust_gas_temperature)[1],
+            PDU_NOT_AVAILABLE,
+        ]
+    }
+}
+
+impl core::fmt::Display for InletExhaustConditions1Message {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "Particulate trap inlet pressure: {} kPa; Boost pressure: {} kPa; Intake manifold temperature: {}°C; Air inlet pressure: {} kPa; Air filter differential pressure: {} kPa; Exhaust gas temperature: {}°C; Coolant filter differential pressure: {} kPa",
+            self.particulate_trap_inlet_pressure.unwrap_or(0),
+            self.boost_pressure.unwrap_or(0),
+            self.intake_manifold_temperature.unwrap_or(0),
+            self.air_inlet_pressure.unwrap_or(0),
+            self.air_filter_differential_pressure.unwrap_or(0),
+            self.exhaust_gas_temperature.unwrap_or(0),
+            self.coolant_filter_differential_pressure.unwrap_or(0)
         )
     }
 }

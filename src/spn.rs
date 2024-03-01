@@ -71,8 +71,10 @@ pub mod slots {
             }
         }
 
-        pub fn enc(value: u8) -> u8 {
-            ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER)) as u8
+        pub fn enc(value: Option<u8>) -> u8 {
+            value.map_or(PDU_NOT_AVAILABLE, |v| {
+                (v as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) as u8
+            })
         }
     }
 
@@ -1324,8 +1326,7 @@ impl ElectronicEngineController3Message {
                 [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE],
                 slots::rotational_velocity::enc,
             )[1],
-            self.engines_desired_operating_speed_asymmetry_adjustment
-                .map_or(PDU_NOT_AVAILABLE, slots::count::enc),
+            slots::count::enc(self.engines_desired_operating_speed_asymmetry_adjustment),
             PDU_NOT_AVAILABLE,
             PDU_NOT_AVAILABLE,
             PDU_NOT_AVAILABLE,

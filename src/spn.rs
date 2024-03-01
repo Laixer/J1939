@@ -989,6 +989,98 @@ impl CabIlluminationMessage {
     }
 }
 
+//
+// Fan Drive
+//
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum FanDriveState {
+    FanOff,
+    EngineSystemGeneral,
+    ExcessiveEngineAirTemperature,
+    ExcessiveEngineOilTemperature,
+    ExcessiveEngineCoolantTemperature,
+    ExcessiveTransmissionOilTemperature,
+    ExcessiveHydraulicOilTemperature,
+    DefaultOperation,
+    NotDefined,
+    ManualControl,
+    TransmissionRetarder,
+    ACSystem,
+    Timer,
+    EngineBrake,
+    Other,
+}
+
+impl FanDriveState {
+    pub fn from_value(value: u8) -> Option<Self> {
+        if value != 0b1111 {
+            let mode = match value & 0b1111 {
+                0b0000 => Self::FanOff,
+                0b0001 => Self::EngineSystemGeneral,
+                0b0010 => Self::ExcessiveEngineAirTemperature,
+                0b0011 => Self::ExcessiveEngineOilTemperature,
+                0b0100 => Self::ExcessiveEngineCoolantTemperature,
+                0b0101 => Self::ExcessiveTransmissionOilTemperature,
+                0b0110 => Self::ExcessiveHydraulicOilTemperature,
+                0b0111 => Self::DefaultOperation,
+                0b1000 => Self::NotDefined,
+                0b1001 => Self::ManualControl,
+                0b1010 => Self::TransmissionRetarder,
+                0b1011 => Self::ACSystem,
+                0b1100 => Self::Timer,
+                0b1101 => Self::EngineBrake,
+                0b1110 => Self::Other,
+                _ => unreachable!(),
+            };
+
+            Some(mode)
+        } else {
+            None
+        }
+    }
+
+    pub fn to_value(mode: Self) -> u8 {
+        match mode {
+            Self::FanOff => 0b0000,
+            Self::EngineSystemGeneral => 0b0001,
+            Self::ExcessiveEngineAirTemperature => 0b0010,
+            Self::ExcessiveEngineOilTemperature => 0b0011,
+            Self::ExcessiveEngineCoolantTemperature => 0b0100,
+            Self::ExcessiveTransmissionOilTemperature => 0b0101,
+            Self::ExcessiveHydraulicOilTemperature => 0b0110,
+            Self::DefaultOperation => 0b0111,
+            Self::NotDefined => 0b1000,
+            Self::ManualControl => 0b1001,
+            Self::TransmissionRetarder => 0b1010,
+            Self::ACSystem => 0b1011,
+            Self::Timer => 0b1100,
+            Self::EngineBrake => 0b1101,
+            Self::Other => 0b1110,
+        }
+    }
+}
+
+pub struct FanDriveMessage {
+    /// Estimated fan speed as a ratio of the fan drive (current speed) to the fully
+    /// engaged fan drive (maximum fan speed). A two state fan (off/on) will use 0% and 100% respectively.
+    pub estimated_percent_fan_speed: Option<u8>,
+    /// This parameter is used to indicate the current state or mode of operation by the fan drive.
+    pub fan_drive_state: Option<FanDriveState>,
+    /// The speed of the fan associated with engine coolant system.
+    pub fan_speed: Option<u16>,
+}
+
+impl FanDriveMessage {
+    pub fn from_pdu(pdu: &[u8]) -> Self {
+        Self {
+            estimated_percent_fan_speed: slots::position_level::dec(pdu[0]),
+            fan_drive_state: FanDriveState::from_value(pdu[1]),
+            fan_speed: slots::rotational_velocity::dec([pdu[2], pdu[3]]),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -1240,6 +1240,14 @@ mod tests {
     use super::*;
 
     #[test]
+    fn count_test_1() {
+        let value = Some(94);
+        let encoded = slots::count::enc(value);
+        let decoded = slots::count::dec(encoded);
+        assert_eq!(decoded, Some(94));
+    }
+
+    #[test]
     fn rotational_velocity_test_1() {
         let value = Some(900);
         let encoded = slots::rotational_velocity::enc(value);
@@ -1253,6 +1261,14 @@ mod tests {
         let encoded = slots::temperature::enc(value);
         let decoded = slots::temperature::dec(encoded);
         assert_eq!(decoded, Some(25));
+    }
+
+    #[test]
+    fn temperature_test_2() {
+        let value = Some(-13);
+        let encoded = slots::temperature2::enc(value);
+        let decoded = slots::temperature2::dec(encoded);
+        assert_eq!(decoded, Some(-13));
     }
 
     #[test]
@@ -1316,6 +1332,14 @@ mod tests {
         let value = Some(123456);
         let encoded = slots::distance::enc(value);
         let decoded = slots::distance::dec(encoded);
+        assert_eq!(decoded, Some(123456));
+    }
+
+    #[test]
+    fn time_test_1() {
+        let value = Some(123456);
+        let encoded = slots::time::enc(value);
+        let decoded = slots::time::dec(encoded);
         assert_eq!(decoded, Some(123456));
     }
 

@@ -56,231 +56,220 @@ pub mod slots {
     }
 
     pub mod count {
-        use crate::PDU_NOT_AVAILABLE;
-
-        const SCALE: f32 = 1.0;
-        const _OFFSET: f32 = 0.0;
-        const LIMIT_LOWER: f32 = 0.0;
-        const LIMIT_UPPER: f32 = 250.0;
+        const RESOLUTION: super::Param = super::Param {
+            scale: 1.0,
+            offset: 0.0,
+            limit_lower: 0.0,
+            limit_upper: 250.0,
+        };
 
         pub fn dec(value: u8) -> Option<u8> {
-            if value != PDU_NOT_AVAILABLE {
-                Some((value as f32 * SCALE).clamp(LIMIT_LOWER, LIMIT_UPPER) as u8)
-            } else {
-                None
+            if value == crate::PDU_NOT_AVAILABLE {
+                return None;
             }
+
+            Some(RESOLUTION.dec(value as f32) as u8)
         }
 
         pub fn enc(value: Option<u8>) -> u8 {
-            value.map_or(PDU_NOT_AVAILABLE, |v| {
-                (v as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) as u8
-            })
+            value.map_or(crate::PDU_NOT_AVAILABLE, |v| RESOLUTION.enc(v as f32) as u8)
         }
     }
 
     pub mod rotational_velocity {
-        use crate::PDU_NOT_AVAILABLE;
-
-        const SCALE: f32 = 0.125;
-        const _OFFSET: f32 = 0.0;
-        const LIMIT_LOWER: f32 = 0.0;
-        const LIMIT_UPPER: f32 = 8031.875;
+        const RESOLUTION: super::Param = super::Param {
+            scale: 0.125,
+            offset: 0.0,
+            limit_lower: 0.0,
+            limit_upper: 8031.875,
+        };
 
         pub fn dec(value: [u8; 2]) -> Option<u16> {
-            if value != [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE] {
-                Some(
-                    (u16::from_le_bytes(value) as f32 * SCALE).clamp(LIMIT_LOWER, LIMIT_UPPER)
-                        as u16,
-                )
-            } else {
-                None
+            if value == [crate::PDU_NOT_AVAILABLE; 2] {
+                return None;
             }
+
+            Some(RESOLUTION.dec(i16::from_le_bytes(value) as f32) as u16)
         }
 
-        pub fn enc(value: u16) -> [u8; 2] {
-            (((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) * 8.0) as u16).to_le_bytes()
+        pub fn enc(value: Option<u16>) -> [u8; 2] {
+            value.map_or([crate::PDU_NOT_AVAILABLE; 2], |v| {
+                (RESOLUTION.enc(v as f32) as u16).to_le_bytes()
+            })
         }
     }
 
     pub mod temperature {
-        use crate::PDU_NOT_AVAILABLE;
-
-        const SCALE: f32 = 0.03125;
-        const OFFSET: f32 = -273.0;
-        const LIMIT_LOWER: f32 = -273.0;
-        const LIMIT_UPPER: f32 = 1735.0;
+        const RESOLUTION: super::Param = super::Param {
+            scale: 0.03125,
+            offset: -273.0,
+            limit_lower: -273.0,
+            limit_upper: 1735.0,
+        };
 
         pub fn dec(value: [u8; 2]) -> Option<i16> {
-            if value != [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE] {
-                Some(
-                    ((i16::from_le_bytes(value) as f32 * SCALE + OFFSET)
-                        .clamp(LIMIT_LOWER, LIMIT_UPPER)) as i16,
-                )
-            } else {
-                None
+            if value == [crate::PDU_NOT_AVAILABLE; 2] {
+                return None;
             }
+
+            Some(RESOLUTION.dec(i16::from_le_bytes(value) as f32) as i16)
         }
 
-        pub fn enc(value: i16) -> [u8; 2] {
-            let value = ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET) / SCALE;
-
-            (value as i16).to_le_bytes()
+        pub fn enc(value: Option<i16>) -> [u8; 2] {
+            value.map_or([crate::PDU_NOT_AVAILABLE; 2], |v| {
+                (RESOLUTION.enc(v as f32) as i16).to_le_bytes()
+            })
         }
     }
 
     pub mod temperature2 {
-        use crate::PDU_NOT_AVAILABLE;
-
-        const SCALE: f32 = 1.0;
-        const OFFSET: f32 = -40.0;
-        const LIMIT_LOWER: f32 = -40.0;
-        const LIMIT_UPPER: f32 = 127.0;
+        const RESOLUTION: super::Param = super::Param {
+            scale: 1.0,
+            offset: -40.0,
+            limit_lower: -40.0,
+            limit_upper: 127.5,
+        };
 
         pub fn dec(value: u8) -> Option<i8> {
-            if value != PDU_NOT_AVAILABLE {
-                Some(((value as f32 * SCALE + OFFSET).clamp(LIMIT_LOWER, LIMIT_UPPER)) as i8)
-            } else {
-                None
+            if value == crate::PDU_NOT_AVAILABLE {
+                return None;
             }
+
+            Some(RESOLUTION.dec(value as f32) as i8)
         }
 
-        pub fn enc(value: i8) -> u8 {
-            let value = ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET) / SCALE;
-
-            value as u8
+        pub fn enc(value: Option<i8>) -> u8 {
+            value.map_or(crate::PDU_NOT_AVAILABLE, |v| RESOLUTION.enc(v as f32) as u8)
         }
     }
 
     pub mod position_level {
-        use crate::PDU_NOT_AVAILABLE;
-
-        const SCALE: f32 = 0.4;
-        const OFFSET: f32 = 0.0;
-        const LIMIT_LOWER: f32 = 0.0;
-        const LIMIT_UPPER: f32 = 100.0;
+        const RESOLUTION: super::Param = super::Param {
+            scale: 0.4,
+            offset: 0.0,
+            limit_lower: 0.0,
+            limit_upper: 100.5,
+        };
 
         pub fn dec(value: u8) -> Option<u8> {
-            if value != PDU_NOT_AVAILABLE {
-                Some((value as f32 * SCALE + OFFSET).clamp(LIMIT_LOWER, LIMIT_UPPER) as u8)
-            } else {
-                None
+            if value == crate::PDU_NOT_AVAILABLE {
+                return None;
             }
+
+            Some(RESOLUTION.dec(value as f32) as u8)
         }
 
-        pub fn enc(value: u8) -> u8 {
-            (((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET) / SCALE) as u8
+        pub fn enc(value: Option<u8>) -> u8 {
+            value.map_or(crate::PDU_NOT_AVAILABLE, |v| RESOLUTION.enc(v as f32) as u8)
         }
     }
 
     pub mod position_level2 {
-        use crate::PDU_NOT_AVAILABLE;
-
-        const SCALE: f32 = 1.0;
-        const OFFSET: f32 = -125.0;
-        const LIMIT_LOWER: f32 = -125.0;
-        const LIMIT_UPPER: f32 = 125.0;
+        const RESOLUTION: super::Param = super::Param {
+            scale: 1.0,
+            offset: -125.0,
+            limit_lower: -125.0,
+            limit_upper: 125.5,
+        };
 
         pub fn dec(value: u8) -> Option<u8> {
-            if value != PDU_NOT_AVAILABLE {
-                Some((value as f32 * SCALE + OFFSET).clamp(LIMIT_LOWER, LIMIT_UPPER) as u8)
-            } else {
-                None
+            if value == crate::PDU_NOT_AVAILABLE {
+                return None;
             }
+
+            Some(RESOLUTION.dec(value as f32) as u8)
         }
 
-        pub fn enc(value: u8) -> u8 {
-            (((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET) / SCALE) as u8
+        pub fn enc(value: Option<u8>) -> u8 {
+            value.map_or(crate::PDU_NOT_AVAILABLE, |v| RESOLUTION.enc(v as f32) as u8)
         }
     }
 
     // TODO: Upper limit might be wrong
     pub mod pressure {
-        use crate::PDU_NOT_AVAILABLE;
-
-        const SCALE: f32 = 4.0;
-        const OFFSET: f32 = 0.0;
-        const LIMIT_LOWER: f32 = 0.0;
-        const LIMIT_UPPER: f32 = 1000.0;
+        const RESOLUTION: super::Param = super::Param {
+            scale: 4.0,
+            offset: 0.0,
+            limit_lower: 0.0,
+            limit_upper: 1000.5,
+        };
 
         pub fn dec(value: u8) -> Option<u8> {
-            if value != PDU_NOT_AVAILABLE {
-                Some((value as f32 * SCALE + OFFSET).clamp(LIMIT_LOWER, LIMIT_UPPER) as u8)
-            } else {
-                None
+            if value == crate::PDU_NOT_AVAILABLE {
+                return None;
             }
+
+            Some(RESOLUTION.dec(value as f32) as u8)
         }
 
-        pub fn enc(value: u8) -> u8 {
-            (((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET) / SCALE) as u8
+        pub fn enc(value: Option<u8>) -> u8 {
+            value.map_or(crate::PDU_NOT_AVAILABLE, |v| RESOLUTION.enc(v as f32) as u8)
         }
     }
 
     pub mod pressure2 {
-        use crate::PDU_NOT_AVAILABLE;
-
-        const SCALE: f32 = 0.05;
-        const OFFSET: f32 = 0.0;
-        const LIMIT_LOWER: f32 = 0.0;
-        const LIMIT_UPPER: f32 = 12.5;
+        const RESOLUTION: super::Param = super::Param {
+            scale: 0.05,
+            offset: 0.0,
+            limit_lower: 0.0,
+            limit_upper: 12.5,
+        };
 
         pub fn dec(value: u8) -> Option<u8> {
-            if value != PDU_NOT_AVAILABLE {
-                Some((value as f32 * SCALE + OFFSET).clamp(LIMIT_LOWER, LIMIT_UPPER) as u8)
-            } else {
-                None
+            if value == crate::PDU_NOT_AVAILABLE {
+                return None;
             }
+
+            Some(RESOLUTION.dec(value as f32) as u8)
         }
 
-        pub fn enc(value: u8) -> u8 {
-            (((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET) / SCALE) as u8
+        pub fn enc(value: Option<u8>) -> u8 {
+            value.map_or(crate::PDU_NOT_AVAILABLE, |v| RESOLUTION.enc(v as f32) as u8)
         }
     }
 
     // TODO: Upper limit might be wrong
     pub mod pressure3 {
-        use crate::PDU_NOT_AVAILABLE;
-
-        const SCALE: f32 = 2.0;
-        const OFFSET: f32 = 0.0;
-        const LIMIT_LOWER: f32 = 0.0;
-        const LIMIT_UPPER: f32 = 500.0;
+        const RESOLUTION: super::Param = super::Param {
+            scale: 2.0,
+            offset: 0.0,
+            limit_lower: 0.0,
+            limit_upper: 500.99,
+        };
 
         pub fn dec(value: u8) -> Option<u8> {
-            if value != PDU_NOT_AVAILABLE {
-                Some((value as f32 * SCALE + OFFSET).clamp(LIMIT_LOWER, LIMIT_UPPER) as u8)
-            } else {
-                None
+            if value == crate::PDU_NOT_AVAILABLE {
+                return None;
             }
+
+            Some(RESOLUTION.dec(value as f32) as u8)
         }
 
-        pub fn enc(value: u8) -> u8 {
-            (((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET) / SCALE) as u8
+        pub fn enc(value: Option<u8>) -> u8 {
+            value.map_or(crate::PDU_NOT_AVAILABLE, |v| RESOLUTION.enc(v as f32) as u8)
         }
     }
 
     pub mod pressure4 {
-        use crate::PDU_NOT_AVAILABLE;
-
-        const SCALE: f32 = 1.0 / 128.0;
-        const OFFSET: f32 = -250.0;
-        const LIMIT_LOWER: f32 = -250.0;
-        const LIMIT_UPPER: f32 = 251.99;
+        const RESOLUTION: super::Param = super::Param {
+            scale: 1.0 / 128.0,
+            offset: -250.0,
+            limit_lower: -250.0,
+            limit_upper: 251.99,
+        };
 
         pub fn dec(value: [u8; 2]) -> Option<i16> {
-            if value != [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE] {
-                Some(
-                    ((i16::from_le_bytes(value) as f32 * SCALE + OFFSET)
-                        .clamp(LIMIT_LOWER, LIMIT_UPPER)) as i16,
-                )
-            } else {
-                None
+            if value == [crate::PDU_NOT_AVAILABLE; 2] {
+                return None;
             }
+
+            Some(RESOLUTION.dec(i16::from_le_bytes(value) as f32) as i16)
         }
 
-        pub fn enc(value: i16) -> [u8; 2] {
-            let value = ((value as f32).clamp(LIMIT_LOWER, LIMIT_UPPER) - OFFSET) / SCALE;
-
-            (value as i16).to_le_bytes()
+        pub fn enc(value: Option<i16>) -> [u8; 2] {
+            value.map_or([crate::PDU_NOT_AVAILABLE; 2], |v| {
+                (RESOLUTION.enc(v as f32) as i16).to_le_bytes()
+            })
         }
     }
 
@@ -300,8 +289,10 @@ pub mod slots {
             Some(RESOLUTION.dec(u32::from_le_bytes(value) as f32) as u32)
         }
 
-        pub fn enc(value: u32) -> [u8; 4] {
-            (RESOLUTION.enc(value as f32) as u32).to_le_bytes()
+        pub fn enc(value: Option<u32>) -> [u8; 4] {
+            value.map_or([crate::PDU_NOT_AVAILABLE; 4], |v| {
+                (RESOLUTION.enc(v as f32) as u32).to_le_bytes()
+            })
         }
     }
 
@@ -321,8 +312,10 @@ pub mod slots {
             Some(RESOLUTION.dec(u32::from_le_bytes(value) as f32) as u32)
         }
 
-        pub fn enc(value: u32) -> [u8; 4] {
-            (RESOLUTION.enc(value as f32) as u32).to_le_bytes()
+        pub fn enc(value: Option<u32>) -> [u8; 4] {
+            value.map_or([crate::PDU_NOT_AVAILABLE; 4], |v| {
+                (RESOLUTION.enc(v as f32) as u32).to_le_bytes()
+            })
         }
     }
 
@@ -342,8 +335,10 @@ pub mod slots {
             Some(RESOLUTION.dec(u32::from_le_bytes(value) as f32) as u32)
         }
 
-        pub fn enc(value: u32) -> [u8; 4] {
-            (RESOLUTION.enc(value as f32) as u32).to_le_bytes()
+        pub fn enc(value: Option<u32>) -> [u8; 4] {
+            value.map_or([crate::PDU_NOT_AVAILABLE; 4], |v| {
+                (RESOLUTION.enc(v as f32) as u32).to_le_bytes()
+            })
         }
     }
 }
@@ -546,14 +541,10 @@ impl ElectronicEngineController1Message {
         [
             self.engine_torque_mode
                 .map_or(PDU_NOT_AVAILABLE, EngineTorqueMode::to_value),
-            self.driver_demand
-                .map_or(PDU_NOT_AVAILABLE, slots::position_level2::enc),
-            self.actual_engine
-                .map_or(PDU_NOT_AVAILABLE, slots::position_level2::enc),
-            self.rpm
-                .map_or([0xff, 0xff], slots::rotational_velocity::enc)[0],
-            self.rpm
-                .map_or([0xff, 0xff], slots::rotational_velocity::enc)[1],
+            slots::position_level2::enc(self.driver_demand),
+            slots::position_level2::enc(self.actual_engine),
+            slots::rotational_velocity::enc(self.rpm)[0],
+            slots::rotational_velocity::enc(self.rpm)[1],
             self.source_addr.unwrap_or(PDU_NOT_AVAILABLE),
             self.starter_mode
                 .map_or(PDU_NOT_AVAILABLE, EngineStarterMode::to_value),
@@ -725,12 +716,8 @@ impl TorqueSpeedControl1Message {
                     .control_mode_priority
                     .map_or(PDU_NOT_AVAILABLE, OverrideControlModePriority::to_value)
                     << 4,
-            self.speed.map_or(PDU_NOT_AVAILABLE, |speed| {
-                slots::rotational_velocity::enc(speed)[0]
-            }),
-            self.speed.map_or(PDU_NOT_AVAILABLE, |speed| {
-                slots::rotational_velocity::enc(speed)[1]
-            }),
+            slots::rotational_velocity::enc(self.speed)[0],
+            slots::rotational_velocity::enc(self.speed)[1],
             self.torque.unwrap_or(PDU_NOT_AVAILABLE),
             PDU_NOT_AVAILABLE,
             PDU_NOT_AVAILABLE,
@@ -794,32 +781,13 @@ impl AmbientConditionsMessage {
             } else {
                 PDU_NOT_AVAILABLE
             },
-            self.cab_interior_temperature.map_or(
-                [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE],
-                slots::temperature::enc,
-            )[0],
-            self.cab_interior_temperature.map_or(
-                [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE],
-                slots::temperature::enc,
-            )[1],
-            self.ambient_air_temperature.map_or(
-                [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE],
-                slots::temperature::enc,
-            )[0],
-            self.ambient_air_temperature.map_or(
-                [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE],
-                slots::temperature::enc,
-            )[1],
-            self.air_inlet_temperature
-                .map_or(PDU_NOT_AVAILABLE, slots::temperature2::enc),
-            self.road_surface_temperature.map_or(
-                [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE],
-                slots::temperature::enc,
-            )[0],
-            self.road_surface_temperature.map_or(
-                [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE],
-                slots::temperature::enc,
-            )[1],
+            slots::temperature::enc(self.cab_interior_temperature)[0],
+            slots::temperature::enc(self.cab_interior_temperature)[1],
+            slots::temperature::enc(self.ambient_air_temperature)[0],
+            slots::temperature::enc(self.ambient_air_temperature)[1],
+            slots::temperature2::enc(self.air_inlet_temperature),
+            slots::temperature::enc(self.road_surface_temperature)[0],
+            slots::temperature::enc(self.road_surface_temperature)[1],
         ]
     }
 }
@@ -1055,26 +1023,14 @@ impl EngineFluidLevelPressure1Message {
 
     pub fn to_pdu(&self) -> [u8; 8] {
         [
-            self.fuel_delivery_pressure
-                .map_or(PDU_NOT_AVAILABLE, slots::pressure::enc),
-            self.extended_crankcase_blow_by_pressure
-                .map_or(PDU_NOT_AVAILABLE, slots::pressure2::enc),
-            self.engine_oil_level
-                .map_or(PDU_NOT_AVAILABLE, slots::position_level::enc),
-            self.engine_oil_pressure
-                .map_or(PDU_NOT_AVAILABLE, slots::pressure::enc),
-            self.crankcase_pressure.map_or(
-                [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE],
-                slots::pressure4::enc,
-            )[0],
-            self.crankcase_pressure.map_or(
-                [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE],
-                slots::pressure4::enc,
-            )[1],
-            self.coolant_pressure
-                .map_or(PDU_NOT_AVAILABLE, slots::pressure3::enc),
-            self.coolant_level
-                .map_or(PDU_NOT_AVAILABLE, slots::position_level::enc),
+            slots::pressure::enc(self.fuel_delivery_pressure),
+            slots::pressure2::enc(self.extended_crankcase_blow_by_pressure),
+            slots::position_level::enc(self.engine_oil_level),
+            slots::pressure::enc(self.engine_oil_pressure),
+            slots::pressure4::enc(self.crankcase_pressure)[0],
+            slots::pressure4::enc(self.crankcase_pressure)[1],
+            slots::pressure3::enc(self.coolant_pressure),
+            slots::position_level::enc(self.coolant_level),
         ]
     }
 }
@@ -1116,78 +1072,14 @@ impl FuelConsumptionMessage {
 
     pub fn to_pdu(&self) -> [u8; 8] {
         [
-            self.trip_fuel.map_or(
-                [
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                ],
-                slots::liquid_fuel_usage::enc,
-            )[0],
-            self.trip_fuel.map_or(
-                [
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                ],
-                slots::liquid_fuel_usage::enc,
-            )[1],
-            self.trip_fuel.map_or(
-                [
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                ],
-                slots::liquid_fuel_usage::enc,
-            )[2],
-            self.trip_fuel.map_or(
-                [
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                ],
-                slots::liquid_fuel_usage::enc,
-            )[3],
-            self.total_fuel_used.map_or(
-                [
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                ],
-                slots::liquid_fuel_usage::enc,
-            )[0],
-            self.total_fuel_used.map_or(
-                [
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                ],
-                slots::liquid_fuel_usage::enc,
-            )[1],
-            self.total_fuel_used.map_or(
-                [
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                ],
-                slots::liquid_fuel_usage::enc,
-            )[2],
-            self.total_fuel_used.map_or(
-                [
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                ],
-                slots::liquid_fuel_usage::enc,
-            )[3],
+            slots::liquid_fuel_usage::enc(self.trip_fuel)[0],
+            slots::liquid_fuel_usage::enc(self.trip_fuel)[1],
+            slots::liquid_fuel_usage::enc(self.trip_fuel)[2],
+            slots::liquid_fuel_usage::enc(self.trip_fuel)[3],
+            slots::liquid_fuel_usage::enc(self.total_fuel_used)[0],
+            slots::liquid_fuel_usage::enc(self.total_fuel_used)[1],
+            slots::liquid_fuel_usage::enc(self.total_fuel_used)[2],
+            slots::liquid_fuel_usage::enc(self.total_fuel_used)[3],
         ]
     }
 }
@@ -1224,78 +1116,14 @@ impl VehicleDistanceMessage {
 
     pub fn to_pdu(&self) -> [u8; 8] {
         [
-            self.trip_distance.map_or(
-                [
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                ],
-                slots::distance::enc,
-            )[0],
-            self.trip_distance.map_or(
-                [
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                ],
-                slots::distance::enc,
-            )[1],
-            self.trip_distance.map_or(
-                [
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                ],
-                slots::distance::enc,
-            )[2],
-            self.trip_distance.map_or(
-                [
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                ],
-                slots::distance::enc,
-            )[3],
-            self.total_vehicle_distance.map_or(
-                [
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                ],
-                slots::distance::enc,
-            )[0],
-            self.total_vehicle_distance.map_or(
-                [
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                ],
-                slots::distance::enc,
-            )[1],
-            self.total_vehicle_distance.map_or(
-                [
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                ],
-                slots::distance::enc,
-            )[2],
-            self.total_vehicle_distance.map_or(
-                [
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                ],
-                slots::distance::enc,
-            )[3],
+            slots::distance::enc(self.trip_distance)[0],
+            slots::distance::enc(self.trip_distance)[1],
+            slots::distance::enc(self.trip_distance)[2],
+            slots::distance::enc(self.trip_distance)[3],
+            slots::distance::enc(self.total_vehicle_distance)[0],
+            slots::distance::enc(self.total_vehicle_distance)[1],
+            slots::distance::enc(self.total_vehicle_distance)[2],
+            slots::distance::enc(self.total_vehicle_distance)[3],
         ]
     }
 }
@@ -1337,16 +1165,9 @@ impl ElectronicEngineController3Message {
 
     pub fn to_pdu(&self) -> [u8; 8] {
         [
-            self.nominal_friction_percent_torque
-                .map_or(PDU_NOT_AVAILABLE, slots::position_level2::enc),
-            self.engines_desired_operating_speed.map_or(
-                [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE],
-                slots::rotational_velocity::enc,
-            )[0],
-            self.engines_desired_operating_speed.map_or(
-                [PDU_NOT_AVAILABLE, PDU_NOT_AVAILABLE],
-                slots::rotational_velocity::enc,
-            )[1],
+            slots::position_level2::enc(self.nominal_friction_percent_torque),
+            slots::rotational_velocity::enc(self.engines_desired_operating_speed)[0],
+            slots::rotational_velocity::enc(self.engines_desired_operating_speed)[1],
             slots::count::enc(self.engines_desired_operating_speed_asymmetry_adjustment),
             PDU_NOT_AVAILABLE,
             PDU_NOT_AVAILABLE,
@@ -1391,78 +1212,14 @@ impl ECUHistory {
 
     pub fn to_pdu(&self) -> [u8; 8] {
         [
-            self.total_ecu_distance.map_or(
-                [
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                ],
-                slots::distance::enc,
-            )[0],
-            self.total_ecu_distance.map_or(
-                [
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                ],
-                slots::distance::enc,
-            )[1],
-            self.total_ecu_distance.map_or(
-                [
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                ],
-                slots::distance::enc,
-            )[2],
-            self.total_ecu_distance.map_or(
-                [
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                ],
-                slots::distance::enc,
-            )[3],
-            self.total_ecu_run_time.map_or(
-                [
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                ],
-                slots::time::enc,
-            )[0],
-            self.total_ecu_run_time.map_or(
-                [
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                ],
-                slots::time::enc,
-            )[1],
-            self.total_ecu_run_time.map_or(
-                [
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                ],
-                slots::time::enc,
-            )[2],
-            self.total_ecu_run_time.map_or(
-                [
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                    PDU_NOT_AVAILABLE,
-                ],
-                slots::time::enc,
-            )[3],
+            slots::distance::enc(self.total_ecu_distance)[0],
+            slots::distance::enc(self.total_ecu_distance)[1],
+            slots::distance::enc(self.total_ecu_distance)[2],
+            slots::distance::enc(self.total_ecu_distance)[3],
+            slots::time::enc(self.total_ecu_run_time)[0],
+            slots::time::enc(self.total_ecu_run_time)[1],
+            slots::time::enc(self.total_ecu_run_time)[2],
+            slots::time::enc(self.total_ecu_run_time)[3],
         ]
     }
 }
@@ -1484,7 +1241,7 @@ mod tests {
 
     #[test]
     fn rotational_velocity_test_1() {
-        let value = 900;
+        let value = Some(900);
         let encoded = slots::rotational_velocity::enc(value);
         let decoded = slots::rotational_velocity::dec(encoded);
         assert_eq!(decoded, Some(900));
@@ -1492,7 +1249,7 @@ mod tests {
 
     #[test]
     fn temperature_test_1() {
-        let value = 25;
+        let value = Some(25);
         let encoded = slots::temperature::enc(value);
         let decoded = slots::temperature::dec(encoded);
         assert_eq!(decoded, Some(25));
@@ -1500,7 +1257,7 @@ mod tests {
 
     #[test]
     fn position_level_test_1() {
-        let value = 50;
+        let value = Some(50);
         let encoded = slots::position_level::enc(value);
         let decoded = slots::position_level::dec(encoded);
         assert_eq!(decoded, Some(50));
@@ -1508,7 +1265,7 @@ mod tests {
 
     #[test]
     fn position_level_test_2() {
-        let value = 100;
+        let value = Some(100);
         let encoded = slots::position_level2::enc(value);
         let decoded = slots::position_level2::dec(encoded);
         assert_eq!(decoded, Some(100));
@@ -1524,7 +1281,7 @@ mod tests {
 
     #[test]
     fn pressure_test_2() {
-        let value = 7;
+        let value = Some(7);
         let encoded = slots::pressure2::enc(value);
         let decoded = slots::pressure2::dec(encoded);
         assert_eq!(decoded, Some(7));
@@ -1532,7 +1289,7 @@ mod tests {
 
     #[test]
     fn pressure_test_3() {
-        let value = 120;
+        let value = Some(120);
         let encoded = slots::pressure3::enc(value);
         let decoded = slots::pressure3::dec(encoded);
         assert_eq!(decoded, Some(120));
@@ -1540,7 +1297,7 @@ mod tests {
 
     #[test]
     fn pressure_test_4() {
-        let value = -178;
+        let value = Some(-178);
         let encoded = slots::pressure4::enc(value);
         let decoded = slots::pressure4::dec(encoded);
         assert_eq!(decoded, Some(-178));
@@ -1548,7 +1305,7 @@ mod tests {
 
     #[test]
     fn liquid_fuel_usage_test_1() {
-        let value = 7863247;
+        let value = Some(7863247);
         let encoded = slots::liquid_fuel_usage::enc(value);
         let decoded = slots::liquid_fuel_usage::dec(encoded);
         assert_eq!(decoded, Some(7863247));
@@ -1556,7 +1313,7 @@ mod tests {
 
     #[test]
     fn distance_test_1() {
-        let value = 123456;
+        let value = Some(123456);
         let encoded = slots::distance::enc(value);
         let decoded = slots::distance::dec(encoded);
         assert_eq!(decoded, Some(123456));

@@ -292,6 +292,59 @@ impl core::fmt::Display for ElectronicEngineController2Message {
 }
 
 //
+// Electronic Engine Controller 3
+//
+
+pub struct ElectronicEngineController3Message {
+    /// The calculated torque that indicates the amount of torque required by
+    /// the basic engine itself added by the loss torque of accessories.
+    pub nominal_friction_percent_torque: Option<u8>,
+    /// An indication by the engine of the optimal operating speed of the engine
+    /// for the current existing conditions. These conditions may include the torque generated to accommodate powertrain demands from the
+    /// operator (via the accelerator pedal), cruise control, road speed limit governors, or ASR. Dynamic commands from functions such as
+    /// smoke control or shift control are excluded from this calculation.
+    pub engines_desired_operating_speed: Option<u16>,
+    /// This byte is utilized in transmission gear
+    /// selection routines and indicates the engine's preference of lower versus higher engine speeds should its desired speed not be achievable.
+    pub engines_desired_operating_speed_asymmetry_adjustment: Option<u8>,
+}
+
+impl ElectronicEngineController3Message {
+    pub fn from_pdu(pdu: &[u8]) -> Self {
+        Self {
+            nominal_friction_percent_torque: slots::position_level2::dec(pdu[0]),
+            engines_desired_operating_speed: slots::rotational_velocity::dec([pdu[1], pdu[2]]),
+            engines_desired_operating_speed_asymmetry_adjustment: slots::count::dec(pdu[3]),
+        }
+    }
+
+    pub fn to_pdu(&self) -> [u8; 8] {
+        [
+            slots::position_level2::enc(self.nominal_friction_percent_torque),
+            slots::rotational_velocity::enc(self.engines_desired_operating_speed)[0],
+            slots::rotational_velocity::enc(self.engines_desired_operating_speed)[1],
+            slots::count::enc(self.engines_desired_operating_speed_asymmetry_adjustment),
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+        ]
+    }
+}
+
+impl core::fmt::Display for ElectronicEngineController3Message {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "Nominal friction percent torque: {}%; Engines desired operating speed: {} RPM; Engines desired operating speed asymmetry adjustment: {}",
+            self.nominal_friction_percent_torque.unwrap_or(0),
+            self.engines_desired_operating_speed.unwrap_or(0),
+            self.engines_desired_operating_speed_asymmetry_adjustment.unwrap_or(0)
+        )
+    }
+}
+
+//
 // Torque Speed Control 1
 //
 
@@ -864,56 +917,6 @@ impl core::fmt::Display for VehicleDistanceMessage {
 }
 
 //
-// Electronic Engine Controller 3
-//
-
-pub struct ElectronicEngineController3Message {
-    /// Engine's Desired Operating Speed Asymmetry Adjustment.
-    pub nominal_friction_percent_torque: Option<u8>,
-    /// An indication by the engine of the optimal operating speed of the engine
-    /// for the current existing conditions.
-    pub engines_desired_operating_speed: Option<u16>,
-    /// This byte is utilized in transmission gear selection routines and indicates the engine's
-    /// preference of lower versus higher engine speeds should its desired speed not be achievable.
-    pub engines_desired_operating_speed_asymmetry_adjustment: Option<u8>,
-}
-
-impl ElectronicEngineController3Message {
-    pub fn from_pdu(pdu: &[u8]) -> Self {
-        Self {
-            nominal_friction_percent_torque: slots::position_level2::dec(pdu[0]),
-            engines_desired_operating_speed: slots::rotational_velocity::dec([pdu[1], pdu[2]]),
-            engines_desired_operating_speed_asymmetry_adjustment: slots::count::dec(pdu[3]),
-        }
-    }
-
-    pub fn to_pdu(&self) -> [u8; 8] {
-        [
-            slots::position_level2::enc(self.nominal_friction_percent_torque),
-            slots::rotational_velocity::enc(self.engines_desired_operating_speed)[0],
-            slots::rotational_velocity::enc(self.engines_desired_operating_speed)[1],
-            slots::count::enc(self.engines_desired_operating_speed_asymmetry_adjustment),
-            PDU_NOT_AVAILABLE,
-            PDU_NOT_AVAILABLE,
-            PDU_NOT_AVAILABLE,
-            PDU_NOT_AVAILABLE,
-        ]
-    }
-}
-
-impl core::fmt::Display for ElectronicEngineController3Message {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(
-            f,
-            "Nominal friction percent torque: {}%; Engines desired operating speed: {} RPM; Engines desired operating speed asymmetry adjustment: {}",
-            self.nominal_friction_percent_torque.unwrap_or(0),
-            self.engines_desired_operating_speed.unwrap_or(0),
-            self.engines_desired_operating_speed_asymmetry_adjustment.unwrap_or(0)
-        )
-    }
-}
-
-//
 // ECU History
 //
 
@@ -1198,6 +1201,95 @@ impl core::fmt::Display for ShutdownMessage {
             self.engine_protection_system_timer_override,
             self.engine_protection_system_timer_state,
             self.engine_protection_system_configuration
+        )
+    }
+}
+
+//
+// Power Takeoff Information
+//
+
+pub struct PowerTakeoffInformation {
+    /// Temperature of lubricant in device used to transmit engine power to auxiliary equipment.
+    pub power_takeoff_oil_temperature: Option<i8>,
+    /// Rotational velocity of device used to transmit engine power to auxiliary equipment.
+    pub power_takeoff_speed: Option<u16>,
+    /// Rotational velocity selected by operator for device used to transmit engine power to
+    /// auxiliary equipment.
+    pub power_takeoff_set_speed: Option<u16>,
+    /// Switch signal which indicates that the PTO toggle switch is in the enabled (ON) position and
+    /// therefore it is possible to manage the PTO control function.
+    pub pto_enable_switch: Option<bool>,
+    /// Switch signal which indicates that the remote
+    /// PTO toggle switch is in the enabled (ON) position. If the toggle switch is enabled and other conditions are satisfied then the remote
+    /// PTO control feature is activated and the PTO will control at the preprogrammed speed.
+    pub remote_pto_preprogrammed_speed_control_switch: Option<bool>,
+    /// Switch signal which indicates that the remote PTO toggle
+    /// switch is in the enabled (ON) position. If the toggle switch is enabled and other conditions are satisfied then the remote PTO control
+    /// feature is activated and the PTO will control at a variable speed.
+    pub remote_pto_variable_speed_control_switch: Option<bool>,
+    /// Switch signal of the PTO control activator which indicates that the activator is in the position "set".
+    pub pto_set_switch: Option<bool>,
+    /// Switch signal of the PTO control activator which indicates that the activator is in the position "coast/decelerate".
+    pub pto_coast_decelerate_switch: Option<bool>,
+    /// Switch signal of the PTO control activator which indicates that the activator is in the position "resume".
+    pub pto_resume_switch: Option<bool>,
+    /// Switch signal of the PTO control activator which indicates that the activator is in the position "accelerate".
+    pub pto_accelerate_switch: Option<bool>,
+}
+
+impl PowerTakeoffInformation {
+    pub fn from_pdu(pdu: &[u8]) -> Self {
+        Self {
+            power_takeoff_oil_temperature: slots::temperature2::dec(pdu[0]),
+            power_takeoff_speed: slots::rotational_velocity::dec([pdu[1], pdu[2]]),
+            power_takeoff_set_speed: slots::rotational_velocity::dec([pdu[3], pdu[4]]),
+            //
+            pto_enable_switch: slots::bool_from_value(pdu[5]),
+            remote_pto_preprogrammed_speed_control_switch: slots::bool_from_value(pdu[5] >> 2),
+            remote_pto_variable_speed_control_switch: slots::bool_from_value(pdu[5] >> 4),
+            //
+            pto_set_switch: slots::bool_from_value(pdu[6]),
+            pto_coast_decelerate_switch: slots::bool_from_value(pdu[6] >> 2),
+            pto_resume_switch: slots::bool_from_value(pdu[6] >> 4),
+            pto_accelerate_switch: slots::bool_from_value(pdu[6] >> 6),
+        }
+    }
+
+    pub fn to_pdu(&self) -> [u8; 8] {
+        [
+            slots::temperature2::enc(self.power_takeoff_oil_temperature),
+            slots::rotational_velocity::enc(self.power_takeoff_speed)[0],
+            slots::rotational_velocity::enc(self.power_takeoff_speed)[1],
+            slots::rotational_velocity::enc(self.power_takeoff_set_speed)[0],
+            slots::rotational_velocity::enc(self.power_takeoff_set_speed)[1],
+            slots::bool_to_value(self.pto_enable_switch)
+                | slots::bool_to_value(self.remote_pto_preprogrammed_speed_control_switch) << 2
+                | slots::bool_to_value(self.remote_pto_variable_speed_control_switch) << 4,
+            slots::bool_to_value(self.pto_set_switch)
+                | slots::bool_to_value(self.pto_coast_decelerate_switch) << 2
+                | slots::bool_to_value(self.pto_resume_switch) << 4
+                | slots::bool_to_value(self.pto_accelerate_switch) << 6,
+            PDU_NOT_AVAILABLE,
+        ]
+    }
+}
+
+impl core::fmt::Display for PowerTakeoffInformation {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "Power takeoff oil temperature: {}°C; Power takeoff speed: {} RPM; Power takeoff set speed: {} RPM; PTO enable switch: {:?}; Remote PTO preprogrammed speed control switch: {:?}; Remote PTO variable speed control switch: {:?}; PTO set switch: {:?}; PTO coast/decelerate switch: {:?}; PTO resume switch: {:?}; PTO accelerate switch: {:?}",
+            self.power_takeoff_oil_temperature.unwrap_or(0),
+            self.power_takeoff_speed.unwrap_or(0),
+            self.power_takeoff_set_speed.unwrap_or(0),
+            self.pto_enable_switch,
+            self.remote_pto_preprogrammed_speed_control_switch,
+            self.remote_pto_variable_speed_control_switch,
+            self.pto_set_switch,
+            self.pto_coast_decelerate_switch,
+            self.pto_resume_switch,
+            self.pto_accelerate_switch
         )
     }
 }

@@ -1,3 +1,19 @@
+pub fn bool_from_value(value: u8) -> Option<bool> {
+    match value & 0b11 {
+        0b00 => Some(false),
+        0b01 => Some(true),
+        _ => None,
+    }
+}
+
+pub fn bool_to_value(value: Option<bool>) -> u8 {
+    match value {
+        Some(false) => 0b00,
+        Some(true) => 0b01,
+        None => 0b11,
+    }
+}
+
 struct Param {
     scale: f32,
     offset: f32,
@@ -126,12 +142,34 @@ pub mod position_level {
     }
 }
 
+// TODO: Return i8 ?
 pub mod position_level2 {
     const RESOLUTION: super::Param = super::Param {
         scale: 1.0,
         offset: -125.0,
         limit_lower: -125.0,
         limit_upper: 125.5,
+    };
+
+    pub fn dec(value: u8) -> Option<u8> {
+        if value == crate::PDU_NOT_AVAILABLE {
+            return None;
+        }
+
+        Some(RESOLUTION.dec(value as f32) as u8)
+    }
+
+    pub fn enc(value: Option<u8>) -> u8 {
+        value.map_or(crate::PDU_NOT_AVAILABLE, |v| RESOLUTION.enc(v as f32) as u8)
+    }
+}
+
+pub mod position_level3 {
+    const RESOLUTION: super::Param = super::Param {
+        scale: 1.0,
+        offset: 0.0,
+        limit_lower: 0.0,
+        limit_upper: 125.0,
     };
 
     pub fn dec(value: u8) -> Option<u8> {

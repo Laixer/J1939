@@ -225,6 +225,73 @@ impl core::fmt::Display for ElectronicEngineController1Message {
 }
 
 //
+// Electronic Engine Controller 2
+//
+
+pub struct ElectronicEngineController2Message {
+    /// Switch signal which indicates the state of the accelerator pedal 1 low
+    /// idle switch.
+    pub accelerator_pedal1_low_idle_switch: Option<bool>,
+    /// Switch signal which indicates whether the accelerator pedal kickdown
+    /// switch is opened or closed.
+    pub accelerator_pedal_kickdown_switch: Option<bool>,
+    /// Status (active or not active) of the system used to limit maximum vehicle velocity.
+    pub road_speed_limit_status: Option<bool>,
+    /// The ratio of actual position of the analog engine speed/torque request input device
+    /// (such as an accelerator pedal or throttle lever) to the maximum position of the input device.
+    pub accelerator_pedal_position1: Option<u8>,
+    /// The ratio of actual engine percent torque (indicated) to maximum indicated
+    // torque available at the current engine speed, clipped to zero torque during engine braking.
+    pub percent_load_at_current_speed: Option<u8>,
+    /// The ratio of actual position of the remote analog engine speed/torque
+    // request input device (such as an accelerator pedal or throttle lever) to the maximum position of the input device.
+    pub remote_accelerator_pedal_position: Option<u8>,
+}
+
+impl ElectronicEngineController2Message {
+    pub fn from_pdu(pdu: &[u8]) -> Self {
+        Self {
+            accelerator_pedal1_low_idle_switch: slots::bool_from_value(pdu[0]),
+            accelerator_pedal_kickdown_switch: slots::bool_from_value(pdu[0] >> 2),
+            road_speed_limit_status: slots::bool_from_value(pdu[0] >> 4),
+            accelerator_pedal_position1: slots::position_level2::dec(pdu[1]),
+            percent_load_at_current_speed: slots::position_level3::dec(pdu[2]),
+            remote_accelerator_pedal_position: slots::position_level::dec(pdu[3]),
+        }
+    }
+
+    pub fn to_pdu(&self) -> [u8; 8] {
+        [
+            slots::bool_to_value(self.accelerator_pedal1_low_idle_switch)
+                | slots::bool_to_value(self.accelerator_pedal_kickdown_switch) << 2
+                | slots::bool_to_value(self.road_speed_limit_status) << 4,
+            slots::position_level2::enc(self.accelerator_pedal_position1),
+            slots::position_level3::enc(self.percent_load_at_current_speed),
+            slots::position_level::enc(self.remote_accelerator_pedal_position),
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+        ]
+    }
+}
+
+impl core::fmt::Display for ElectronicEngineController2Message {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "Accelerator pedal 1 low idle switch: {:?}; Accelerator pedal kickdown switch: {:?}; Road speed limit status: {:?}; Accelerator pedal position 1: {}%; Percent load at current speed: {}%; Remote accelerator pedal position: {}%",
+            self.accelerator_pedal1_low_idle_switch,
+            self.accelerator_pedal_kickdown_switch,
+            self.road_speed_limit_status,
+            self.accelerator_pedal_position1.unwrap_or(0),
+            self.percent_load_at_current_speed.unwrap_or(0),
+            self.remote_accelerator_pedal_position.unwrap_or(0)
+        )
+    }
+}
+
+//
 // Torque Speed Control 1
 //
 
@@ -850,7 +917,7 @@ impl core::fmt::Display for ElectronicEngineController3Message {
 // ECU History
 //
 
-pub struct ECUHistory {
+pub struct ECUHistoryMessage {
     /// Total distance accumulated over the life of the ECU. When the ECU is replaced this value
     /// shall be reset.
     pub total_ecu_distance: Option<u32>,
@@ -859,7 +926,7 @@ pub struct ECUHistory {
     pub total_ecu_run_time: Option<u32>,
 }
 
-impl ECUHistory {
+impl ECUHistoryMessage {
     pub fn from_pdu(pdu: &[u8]) -> Self {
         Self {
             total_ecu_distance: slots::distance::dec([pdu[0], pdu[1], pdu[2], pdu[3]]),
@@ -881,7 +948,7 @@ impl ECUHistory {
     }
 }
 
-impl core::fmt::Display for ECUHistory {
+impl core::fmt::Display for ECUHistoryMessage {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(
             f,
@@ -889,6 +956,36 @@ impl core::fmt::Display for ECUHistory {
             self.total_ecu_distance.unwrap_or(0),
             self.total_ecu_run_time.unwrap_or(0)
         )
+    }
+}
+
+//
+// Cab Illumination Message
+//
+
+pub struct CabIlluminationMessage {
+    /// Commanded backlight brightness level for all cab displays.
+    pub illumination_brightness_percent: Option<u8>,
+}
+
+impl CabIlluminationMessage {
+    pub fn from_pdu(pdu: &[u8]) -> Self {
+        Self {
+            illumination_brightness_percent: slots::position_level::dec(pdu[0]),
+        }
+    }
+
+    pub fn to_pdu(&self) -> [u8; 8] {
+        [
+            slots::position_level::enc(self.illumination_brightness_percent),
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+        ]
     }
 }
 

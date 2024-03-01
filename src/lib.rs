@@ -9,6 +9,7 @@ mod name;
 mod pgn;
 pub mod protocol;
 mod sa;
+mod slots;
 pub mod spn;
 
 pub use name::*;

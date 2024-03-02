@@ -2,9 +2,6 @@
 #![deny(warnings)]
 #![no_std]
 
-// TODO: Rename to SPN
-pub mod decode;
-
 mod name;
 mod pgn;
 pub mod protocol;

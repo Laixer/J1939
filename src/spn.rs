@@ -189,7 +189,11 @@ impl ElectronicEngineController1Message {
             driver_demand: slots::position_level2::dec(pdu[1]),
             actual_engine: slots::position_level2::dec(pdu[2]),
             rpm: slots::rotational_velocity::dec([pdu[3], pdu[4]]),
-            source_addr: crate::decode::spn1483(pdu[5]),
+            source_addr: if pdu[5] != PDU_NOT_AVAILABLE {
+                Some(pdu[5])
+            } else {
+                None
+            },
             starter_mode: EngineStarterMode::from_value(pdu[6]),
         }
     }

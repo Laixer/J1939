@@ -49,6 +49,8 @@ pub enum PGN {
     Tachoraph,
     /// EH - ECU History.
     ECUHistory,
+    /// FD - Fan Drive.
+    FanDrive,
     /// EEC4 - Electronic Engine Controller 4.
     ElectronicEngineController4,
     /// SOFT - Software Identification.
@@ -99,6 +101,8 @@ pub enum PGN {
     EngineTemperature1,
     /// EFL/P1 - Engine Fluid Level/Pressure 1.
     EngineFluidLevelPressure1,
+    /// PTO - Power Takeoff Information.
+    PowerTakeoffInformation,
     /// CCVS - Cruise Control/Vehicle Speed.
     CruiseControlVehicleSpeed,
     /// LFE - Fuel Economy (Liquid).
@@ -107,6 +111,8 @@ pub enum PGN {
     VehiclePosition,
     /// AMB - Ambient Conditions.
     AmbientConditions,
+    /// IC1 - Inlet/Exhaust Conditions 1.
+    InletExhaustConditions1,
     /// VEP1 - Vehicle Electrical Power 1.
     VehicleElectricalPower1,
     /// ACKM - Acknowledgment Message.
@@ -170,6 +176,7 @@ impl From<u32> for PGN {
             61_445 => PGN::ElectronicTransmissionController2,
             65_132 => PGN::Tachoraph,
             65_201 => PGN::ECUHistory,
+            65_213 => PGN::FanDrive,
             65_214 => PGN::ElectronicEngineController4,
             65_240 => PGN::CommandedAddress,
             65_241 => PGN::AuxiliaryInputOutputStatus,
@@ -189,10 +196,12 @@ impl From<u32> for PGN {
             65_260 => PGN::VehicleIdentification,
             65_262 => PGN::EngineTemperature1,
             65_263 => PGN::EngineFluidLevelPressure1,
+            65_264 => PGN::PowerTakeoffInformation,
             65_265 => PGN::CruiseControlVehicleSpeed,
             65_266 => PGN::FuelEconomy,
             65_267 => PGN::VehiclePosition,
             65_269 => PGN::AmbientConditions,
+            65_270 => PGN::InletExhaustConditions1,
             65_271 => PGN::VehicleElectricalPower1,
             65_280..=65_535 => PGN::ProprietaryB(value & 0x3ffff),
             _ => PGN::Other(value & 0x3ffff),
@@ -235,6 +244,7 @@ impl From<PGN> for u32 {
             PGN::ElectronicTransmissionController2 => 61_445,
             PGN::Tachoraph => 65_132,
             PGN::ECUHistory => 65_201,
+            PGN::FanDrive => 65_213,
             PGN::ElectronicEngineController4 => 65_214,
             PGN::CommandedAddress => 65_240,
             PGN::AuxiliaryInputOutputStatus => 65_241,
@@ -254,10 +264,12 @@ impl From<PGN> for u32 {
             PGN::VehicleIdentification => 65_260,
             PGN::EngineTemperature1 => 65_262,
             PGN::EngineFluidLevelPressure1 => 65_263,
+            PGN::PowerTakeoffInformation => 65_264,
             PGN::CruiseControlVehicleSpeed => 65_265,
             PGN::FuelEconomy => 65_266,
             PGN::VehiclePosition => 65_267,
             PGN::AmbientConditions => 65_269,
+            PGN::InletExhaustConditions1 => 65_270,
             PGN::VehicleElectricalPower1 => 65_271,
             PGN::ProprietaryB(value_u32) => value_u32 & 0x3ffff,
             PGN::Other(value_u32) => value_u32 & 0x3ffff,

@@ -115,6 +115,22 @@ pub enum PGN {
     InletExhaustConditions1,
     /// VEP1 - Vehicle Electrical Power 1.
     VehicleElectricalPower1,
+    /// TF - Transmission Fluids.
+    TransmissionFluids,
+    /// AI - Axle Information.
+    AxleInformation,
+    /// B - Brakes.
+    Brakes,
+    /// RF - Retarder fluids.
+    RetarderFluids,
+    /// DD - Dash Display.
+    DashDisplay,
+    /// A1 - Alternate Fuel 1.
+    AlternateFuel1,
+    /// AWPP - Auxiliary Water Pump Pressure.
+    AuxiliaryWaterPumpPressure,
+    /// WFI - Water in Fuel Indicator.
+    WaterInFuelIndicator,
     /// ACKM - Acknowledgment Message.
     AcknowledgmentMessage,
     /// CI - Component Identification.
@@ -203,6 +219,14 @@ impl From<u32> for PGN {
             65_269 => PGN::AmbientConditions,
             65_270 => PGN::InletExhaustConditions1,
             65_271 => PGN::VehicleElectricalPower1,
+            65_272 => PGN::TransmissionFluids,
+            65_273 => PGN::AxleInformation,
+            65_274 => PGN::Brakes,
+            65_275 => PGN::RetarderFluids,
+            65_276 => PGN::DashDisplay,
+            65_277 => PGN::AlternateFuel1,
+            65_278 => PGN::AuxiliaryWaterPumpPressure,
+            65_279 => PGN::WaterInFuelIndicator,
             65_280..=65_535 => PGN::ProprietaryB(value & 0x3ffff),
             _ => PGN::Other(value & 0x3ffff),
         }
@@ -271,6 +295,14 @@ impl From<PGN> for u32 {
             PGN::AmbientConditions => 65_269,
             PGN::InletExhaustConditions1 => 65_270,
             PGN::VehicleElectricalPower1 => 65_271,
+            PGN::TransmissionFluids => 65_272,
+            PGN::AxleInformation => 65_273,
+            PGN::Brakes => 65_274,
+            PGN::RetarderFluids => 65_275,
+            PGN::DashDisplay => 65_276,
+            PGN::AlternateFuel1 => 65_277,
+            PGN::AuxiliaryWaterPumpPressure => 65_278,
+            PGN::WaterInFuelIndicator => 65_279,
             PGN::ProprietaryB(value_u32) => value_u32 & 0x3ffff,
             PGN::Other(value_u32) => value_u32 & 0x3ffff,
         }

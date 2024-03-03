@@ -144,12 +144,18 @@ pub enum PGN {
 }
 
 impl PGN {
+    /// Converts the PGN to a little-endian byte array.
+    ///
+    /// Returns a byte array of length `PGN_MAX_LENGTH` representing the PGN in little-endian format.
     pub fn to_le_bytes(self) -> [u8; PGN_MAX_LENGTH] {
         let byte_array = u32::to_be_bytes(self.into());
 
         [byte_array[3], byte_array[2], byte_array[1]]
     }
 
+    /// Creates a PGN from a little-endian byte array.
+    ///
+    /// Returns the PGN created from the byte array.
     pub fn from_le_bytes(bytes: [u8; PGN_MAX_LENGTH]) -> Self {
         let pgn = u32::from_be_bytes([0x0, bytes[2], bytes[1], bytes[0]]);
 

@@ -1429,6 +1429,166 @@ impl core::fmt::Display for InletExhaustConditions1Message {
     }
 }
 
+//
+// Electronic Brake Controller 1
+//
+
+pub struct ElectronicBrakeController1Message {
+    /// State signal which indicates that ASR engine control has been commanded to be
+    /// active. Active means that ASR actually tries to control the engine. This state signal is independent of other control commands to the
+    /// engine (e.g., from the transmission) which may have higher priority.
+    pub asr_engine_control_active: Option<bool>,
+    /// State signal which indicates that ASR brake control is active. Active means that
+    /// ASR actually controls wheel brake pressure at one or more wheels of the driven axle(s).
+    pub asr_brake_control_active: Option<bool>,
+    /// State signal which indicates that the ABS is active. The signal is set active
+    /// when wheel brake pressure actually starts to be modulated by ABS and is reset to passive when all wheels are in a stable condition for a
+    /// certain time. The signal can also be set active when driven wheels are in high slip (e.g., caused by retarder). Whenever the ABS system
+    /// is not fully operational (due to a defect or during off-road ABS operation) , this signal is only valid for that part of the system that is still
+    /// working. When ABS is switched off completely, the flag is set to passive regardless of the current wheel slip conditions.
+    pub abs_active: Option<bool>,
+    /// Switch signal which indicates that the brake pedal is being pressed. The EBS brake switch is
+    /// independent of the brake light switch and has no provisions for external connections.
+    pub ebs_brake_switch: Option<bool>,
+    /// Ratio of brake pedal position to maximum pedal position. Used for electric brake
+    /// applications. 0% means no braking. Also when there are two brake pedals on the machine (Left Brake Pedal Position SPN-tba and
+    /// Right Brake Pedal Position SPN-tba) the maximum of the two should be transmitted for Brake Pedal Position.
+    pub brake_pedal_position: Option<u8>,
+    /// Switch signal which indicates the position of the ABS off-road switch.
+    pub abs_off_road_switch: Option<bool>,
+    /// Switch signal which indicates the position of the ASR off-road switch.
+    pub asr_off_road_switch: Option<bool>,
+    /// Switch signal which indicates the position of the ASR 'hill holder' switch.
+    pub asr_hill_holder_switch: Option<bool>,
+    /// Switch signal which indicates the position of the traction control
+    /// override switch. The traction control override signal disables the automatic traction control function allowing the wheels to spin.
+    pub traction_control_override_switch: Option<bool>,
+    /// Switch signal used to disable the accelerator and remote accelerator inputs,
+    /// causing the engine to return to idle.
+    pub accelerator_interlock_switch: Option<bool>,
+    /// Switch signal used to activate the torque limiting feature of the engine. The specific nature
+    /// of torque limiting should be verified with the manufacturer.
+    pub engine_derate_switch: Option<bool>,
+    /// Switch signal which requests that all engine fueling stop.
+    pub auxiliary_engine_shutdown_switch: Option<bool>,
+    /// Switch signal which indicates that the remote accelerator has been
+    /// enabled and controls the engine.
+    pub remote_accelerator_enable_switch: Option<bool>,
+    /// The position of the operator controlled selector, expressed as a percentage and
+    /// determined by the ratio of the current position of the selector to its maximum possible position. Zero percent means no braking torque is
+    /// requested by the operator from the engine while 100% means maximum braking.
+    pub engine_retarder_selection: Option<u8>,
+    /// Signal which indicates whether an ABS system is fully operational or whether its
+    /// functionality is reduced by a defect or by an intended action (e.g., by activation of an ABS-off-road switch or during special diagnostic
+    /// procedures). There are cases where the signal is necessary to fulfill legal regulations for special applications (e.g., switching off
+    /// integrated retarders).
+    pub abs_fully_operational: Option<bool>,
+    /// Status signal which indicates fuel leakage in the fuel rail of the engine. The location can be either
+    /// before or after the fuel pump.
+    pub ebs_red_warning_signal: Option<bool>,
+    /// This parameter commands the ABS/EBS amber/yellow optical warning signal.
+    pub abs_ebs_amber_warning_signal: Option<bool>,
+    /// This parameter commands the ATC/ASR driver information signal, for example a dash lamp.
+    pub atc_asr_information_signal: Option<bool>,
+    /// The source address of the SAE J1939 device currently controlling the brake system. Its value may be the source address of the ECU
+    /// transmitting the message (which means that no external SAE J1939 message is providing the active command) or the source address of
+    /// the SAE J1939 ECU that is currently providing the active command in a TSC1 (see PGN 0) or similar message. Note that if this parameter
+    /// value is the same as the source address of the device transmitting it, the control may be due to a message on a non-SAE J1939 data link
+    /// such as SAE J1922 or a proprietary link.
+    pub source_address: Option<u8>,
+    /// State signal which indicates that ABS in the trailer is actively controlling the brakes. A
+    /// message is sent to the tractor from the trailer (i.e. by PLC). The receiving device in the tractor transfers this information to the J1939
+    /// network. At the beginning of power on the message is sent by the trailer to indicate if this status information is supported. Timeout of
+    /// the trailer ABS active can be done by monitoring of the Trailer warning light information.
+    pub trailer_abs_status: Option<bool>,
+    /// This parameter commands the tractor-mounted trailer ABS optical warning signal.
+    pub tractor_mounted_trailer_abs_warning_signal: Option<bool>,
+}
+
+impl ElectronicBrakeController1Message {
+    pub fn from_pdu(pdu: &[u8]) -> Self {
+        Self {
+            asr_engine_control_active: slots::bool_from_value(pdu[0]),
+            asr_brake_control_active: slots::bool_from_value(pdu[0] >> 2),
+            abs_active: slots::bool_from_value(pdu[0] >> 4),
+            ebs_brake_switch: slots::bool_from_value(pdu[0] >> 6),
+            brake_pedal_position: slots::position_level::dec(pdu[1]),
+            abs_off_road_switch: slots::bool_from_value(pdu[2]),
+            asr_off_road_switch: slots::bool_from_value(pdu[2] >> 2),
+            asr_hill_holder_switch: slots::bool_from_value(pdu[2] >> 4),
+            traction_control_override_switch: slots::bool_from_value(pdu[2] >> 6),
+            accelerator_interlock_switch: slots::bool_from_value(pdu[3]),
+            engine_derate_switch: slots::bool_from_value(pdu[3] >> 2),
+            auxiliary_engine_shutdown_switch: slots::bool_from_value(pdu[3] >> 4),
+            remote_accelerator_enable_switch: slots::bool_from_value(pdu[3] >> 6),
+            engine_retarder_selection: slots::position_level::dec(pdu[4]),
+            abs_fully_operational: slots::bool_from_value(pdu[5]),
+            ebs_red_warning_signal: slots::bool_from_value(pdu[5] >> 2),
+            abs_ebs_amber_warning_signal: slots::bool_from_value(pdu[5] >> 4),
+            atc_asr_information_signal: slots::bool_from_value(pdu[5] >> 6),
+            source_address: slots::source_address::dec(pdu[6]),
+            trailer_abs_status: slots::bool_from_value(pdu[7] >> 4),
+            tractor_mounted_trailer_abs_warning_signal: slots::bool_from_value(pdu[7] >> 6),
+        }
+    }
+
+    pub fn to_pdu(&self) -> [u8; 8] {
+        [
+            slots::bool_to_value(self.asr_engine_control_active)
+                | slots::bool_to_value(self.asr_brake_control_active) << 2
+                | slots::bool_to_value(self.abs_active) << 4
+                | slots::bool_to_value(self.ebs_brake_switch) << 6,
+            slots::position_level::enc(self.brake_pedal_position),
+            slots::bool_to_value(self.abs_off_road_switch)
+                | slots::bool_to_value(self.asr_off_road_switch) << 2
+                | slots::bool_to_value(self.asr_hill_holder_switch) << 4
+                | slots::bool_to_value(self.traction_control_override_switch) << 6,
+            slots::bool_to_value(self.accelerator_interlock_switch)
+                | slots::bool_to_value(self.engine_derate_switch) << 2
+                | slots::bool_to_value(self.auxiliary_engine_shutdown_switch) << 4
+                | slots::bool_to_value(self.remote_accelerator_enable_switch) << 6,
+            slots::position_level::enc(self.engine_retarder_selection),
+            slots::bool_to_value(self.abs_fully_operational)
+                | slots::bool_to_value(self.ebs_red_warning_signal) << 2
+                | slots::bool_to_value(self.abs_ebs_amber_warning_signal) << 4
+                | slots::bool_to_value(self.atc_asr_information_signal) << 6,
+            slots::source_address::enc(self.source_address),
+            slots::bool_to_value(self.trailer_abs_status) << 4
+                | slots::bool_to_value(self.tractor_mounted_trailer_abs_warning_signal) << 6,
+        ]
+    }
+}
+
+impl core::fmt::Display for ElectronicBrakeController1Message {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "ASR engine control active: {:?}; ASR brake control active: {:?}; ABS active: {:?}; EBS brake switch: {:?}; Brake pedal position: {}%; ABS off-road switch: {:?}; ASR off-road switch: {:?}; ASR hill holder switch: {:?}; Traction control override switch: {:?}; Accelerator interlock switch: {:?}; Engine derate switch: {:?}; Auxiliary engine shutdown switch: {:?}; Remote accelerator enable switch: {:?}; Engine retarder selection: {}%; ABS fully operational: {:?}; EBS red warning signal: {:?}; ABS/EBS amber warning signal: {:?}; ATC/ASR information signal: {:?}; Source address: {:?}; Trailer ABS status: {:?}; Tractor-mounted trailer ABS warning signal: {:?}",
+            self.asr_engine_control_active,
+            self.asr_brake_control_active,
+            self.abs_active,
+            self.ebs_brake_switch,
+            self.brake_pedal_position.unwrap_or(0),
+            self.abs_off_road_switch,
+            self.asr_off_road_switch,
+            self.asr_hill_holder_switch,
+            self.traction_control_override_switch,
+            self.accelerator_interlock_switch,
+            self.engine_derate_switch,
+            self.auxiliary_engine_shutdown_switch,
+            self.remote_accelerator_enable_switch,
+            self.engine_retarder_selection.unwrap_or(0),
+            self.abs_fully_operational,
+            self.ebs_red_warning_signal,
+            self.abs_ebs_amber_warning_signal,
+            self.atc_asr_information_signal,
+            self.source_address,
+            self.trailer_abs_status,
+            self.tractor_mounted_trailer_abs_warning_signal
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

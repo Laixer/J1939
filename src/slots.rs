@@ -33,6 +33,27 @@ impl Param {
     }
 }
 
+pub mod source_address {
+    const RESOLUTION: super::Param = super::Param {
+        scale: 1.0,
+        offset: 0.0,
+        limit_lower: 0.0,
+        limit_upper: 255.0,
+    };
+
+    pub fn dec(value: u8) -> Option<u8> {
+        if value == crate::PDU_NOT_AVAILABLE {
+            return None;
+        }
+
+        Some(RESOLUTION.dec(value as f32) as u8)
+    }
+
+    pub fn enc(value: Option<u8>) -> u8 {
+        value.map_or(crate::PDU_NOT_AVAILABLE, |v| RESOLUTION.enc(v as f32) as u8)
+    }
+}
+
 pub mod count {
     const RESOLUTION: super::Param = super::Param {
         scale: 1.0,

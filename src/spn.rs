@@ -357,19 +357,13 @@ pub enum OverrideControlMode {
 }
 
 impl OverrideControlMode {
-    pub fn from_value(value: u8) -> Option<Self> {
-        if value != PDU_NOT_AVAILABLE {
-            let mode = match value & 0b11 {
-                0b00 => OverrideControlMode::OverrideDisabled,
-                0b01 => OverrideControlMode::SpeedControl,
-                0b10 => OverrideControlMode::TorqueControl,
-                0b11 => OverrideControlMode::SpeedTorqueLimitControl,
-                _ => unreachable!(),
-            };
-
-            Some(mode)
-        } else {
-            None
+    pub fn from_value(value: u8) -> Self {
+        match value & 0b11 {
+            0b00 => OverrideControlMode::OverrideDisabled,
+            0b01 => OverrideControlMode::SpeedControl,
+            0b10 => OverrideControlMode::TorqueControl,
+            0b11 => OverrideControlMode::SpeedTorqueLimitControl,
+            _ => unreachable!(),
         }
     }
 
@@ -392,19 +386,13 @@ pub enum RequestedSpeedControlCondition {
 }
 
 impl RequestedSpeedControlCondition {
-    pub fn from_value(value: u8) -> Option<Self> {
-        if value != PDU_NOT_AVAILABLE {
-            let condition = match value & 0b11 {
-                0b00 => RequestedSpeedControlCondition::TransientOptimizedDriveLineDisengaged,
-                0b01 => RequestedSpeedControlCondition::StabilityOptimizedDriveLineDisengaged,
-                0b10 => RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged1,
-                0b11 => RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged2,
-                _ => unreachable!(),
-            };
-
-            Some(condition)
-        } else {
-            None
+    pub fn from_value(value: u8) -> Self {
+        match value & 0b11 {
+            0b00 => RequestedSpeedControlCondition::TransientOptimizedDriveLineDisengaged,
+            0b01 => RequestedSpeedControlCondition::StabilityOptimizedDriveLineDisengaged,
+            0b10 => RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged1,
+            0b11 => RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged2,
+            _ => unreachable!(),
         }
     }
 
@@ -427,19 +415,13 @@ pub enum OverrideControlModePriority {
 }
 
 impl OverrideControlModePriority {
-    pub fn from_value(value: u8) -> Option<Self> {
-        if value != PDU_NOT_AVAILABLE {
-            let priority = match value & 0b11 {
-                0b00 => OverrideControlModePriority::HighestPriority,
-                0b01 => OverrideControlModePriority::HighPriority,
-                0b10 => OverrideControlModePriority::MediumPriority,
-                0b11 => OverrideControlModePriority::LowPriority,
-                _ => unreachable!(),
-            };
-
-            Some(priority)
-        } else {
-            None
+    pub fn from_value(value: u8) -> Self {
+        match value & 0b11 {
+            0b00 => OverrideControlModePriority::HighestPriority,
+            0b01 => OverrideControlModePriority::HighPriority,
+            0b10 => OverrideControlModePriority::MediumPriority,
+            0b11 => OverrideControlModePriority::LowPriority,
+            _ => unreachable!(),
         }
     }
 
@@ -455,11 +437,15 @@ impl OverrideControlModePriority {
 
 pub struct TorqueSpeedControl1Message {
     /// Override control mode - SPN 695
-    pub override_control_mode: Option<OverrideControlMode>,
-    /// Requested speed control conditions - SPN 696
-    pub speed_control_condition: Option<RequestedSpeedControlCondition>,
-    /// Override control mode priority - SPN 897
-    pub control_mode_priority: Option<OverrideControlModePriority>,
+    pub override_control_mode: OverrideControlMode,
+    /// This mode tells the engine control system the governor characteristics that are desired during speed control.
+    pub speed_control_condition: RequestedSpeedControlCondition,
+    /// This field is used as an input to the engine or retarder to determine the
+    /// priority of the Override Control Mode received in the Torque/Speed Control message (see PGN 0). The default is 11 (Low priority). It
+    /// is not required to use the same priority during the entire override function. For example, the transmission can use priority 01 (High
+    /// priority) during a shift, but can set the priority to 11 (Low priority) at the end of the shift to allow traction control to also interact with
+    /// the torque limit of the engine.
+    pub control_mode_priority: OverrideControlModePriority,
     /// Requested speed or speed limit - SPN 898
     pub speed: Option<u16>,
     /// Requested torque or torque limit - SPN 518
@@ -483,16 +469,9 @@ impl TorqueSpeedControl1Message {
 
     pub fn to_pdu(&self) -> [u8; 8] {
         [
-            self.override_control_mode
-                .map_or(PDU_NOT_AVAILABLE, OverrideControlMode::to_value)
-                | self
-                    .speed_control_condition
-                    .map_or(PDU_NOT_AVAILABLE, RequestedSpeedControlCondition::to_value)
-                    << 2
-                | self
-                    .control_mode_priority
-                    .map_or(PDU_NOT_AVAILABLE, OverrideControlModePriority::to_value)
-                    << 4,
+            OverrideControlMode::to_value(self.override_control_mode)
+                | RequestedSpeedControlCondition::to_value(self.speed_control_condition) << 2
+                | OverrideControlModePriority::to_value(self.control_mode_priority) << 4,
             slots::rotational_velocity::enc(self.speed)[0],
             slots::rotational_velocity::enc(self.speed)[1],
             self.torque.unwrap_or(PDU_NOT_AVAILABLE),
@@ -1658,11 +1637,10 @@ mod tests {
     #[test]
     fn torque_speed_control_1_message_1() {
         let torque_speed_encoded = TorqueSpeedControl1Message {
-            override_control_mode: Some(OverrideControlMode::SpeedControl),
-            speed_control_condition: Some(
+            override_control_mode: OverrideControlMode::SpeedControl,
+            speed_control_condition:
                 RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged1,
-            ),
-            control_mode_priority: Some(OverrideControlModePriority::MediumPriority),
+            control_mode_priority: OverrideControlModePriority::MediumPriority,
             speed: Some(1234),
             torque: Some(56),
         }
@@ -1671,15 +1649,15 @@ mod tests {
 
         assert_eq!(
             torque_speed_decoded.override_control_mode,
-            Some(OverrideControlMode::SpeedControl)
+            OverrideControlMode::SpeedControl
         );
         assert_eq!(
             torque_speed_decoded.speed_control_condition,
-            Some(RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged1)
+            RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged1
         );
         assert_eq!(
             torque_speed_decoded.control_mode_priority,
-            Some(OverrideControlModePriority::MediumPriority)
+            OverrideControlModePriority::MediumPriority
         );
         assert_eq!(torque_speed_decoded.speed, Some(1234));
         assert_eq!(torque_speed_decoded.torque, Some(56));
@@ -1688,11 +1666,10 @@ mod tests {
     #[test]
     fn torque_speed_control_1_message_2() {
         let torque_speed_encoded = TorqueSpeedControl1Message {
-            override_control_mode: Some(OverrideControlMode::SpeedTorqueLimitControl),
-            speed_control_condition: Some(
+            override_control_mode: OverrideControlMode::SpeedTorqueLimitControl,
+            speed_control_condition:
                 RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged1,
-            ),
-            control_mode_priority: Some(OverrideControlModePriority::MediumPriority),
+            control_mode_priority: OverrideControlModePriority::MediumPriority,
             speed: None,
             torque: None,
         }
@@ -1701,15 +1678,15 @@ mod tests {
 
         assert_eq!(
             torque_speed_decoded.override_control_mode,
-            Some(OverrideControlMode::SpeedTorqueLimitControl)
+            OverrideControlMode::SpeedTorqueLimitControl
         );
         assert_eq!(
             torque_speed_decoded.speed_control_condition,
-            Some(RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged1)
+            RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged1
         );
         assert_eq!(
             torque_speed_decoded.control_mode_priority,
-            Some(OverrideControlModePriority::MediumPriority)
+            OverrideControlModePriority::MediumPriority
         );
         assert_eq!(torque_speed_decoded.speed, None);
         assert_eq!(torque_speed_decoded.torque, None);

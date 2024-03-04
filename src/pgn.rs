@@ -45,6 +45,8 @@ pub enum PGN {
     ElectronicEngineController1,
     /// ETC2 Electronic Transmission Controller 2
     ElectronicTransmissionController2,
+    /// TI1 - TANK Information 1.
+    TANKInformation1,
     /// TCO1 - Tachoraph.
     Tachoraph,
     /// EH - ECU History.
@@ -196,6 +198,7 @@ impl From<u32> for PGN {
             61_443 => PGN::ElectronicEngineController2,
             61_444 => PGN::ElectronicEngineController1,
             61_445 => PGN::ElectronicTransmissionController2,
+            65_110 => PGN::TANKInformation1,
             65_132 => PGN::Tachoraph,
             65_201 => PGN::ECUHistory,
             65_213 => PGN::FanDrive,
@@ -272,6 +275,7 @@ impl From<PGN> for u32 {
             PGN::ElectronicEngineController1 => 61_444,
             PGN::ElectronicEngineController2 => 61_443,
             PGN::ElectronicTransmissionController2 => 61_445,
+            PGN::TANKInformation1 => 65_110,
             PGN::Tachoraph => 65_132,
             PGN::ECUHistory => 65_201,
             PGN::FanDrive => 65_213,

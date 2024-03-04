@@ -459,11 +459,7 @@ impl TorqueSpeedControl1Message {
             speed_control_condition: RequestedSpeedControlCondition::from_value(pdu[0] >> 2),
             control_mode_priority: OverrideControlModePriority::from_value(pdu[0] >> 4),
             speed: slots::rotational_velocity::dec([pdu[1], pdu[2]]),
-            torque: if pdu[3] != PDU_NOT_AVAILABLE {
-                Some(pdu[3])
-            } else {
-                None
-            },
+            torque: slots::position_level2::dec(pdu[3]),
         }
     }
 
@@ -474,7 +470,7 @@ impl TorqueSpeedControl1Message {
                 | OverrideControlModePriority::to_value(self.control_mode_priority) << 4,
             slots::rotational_velocity::enc(self.speed)[0],
             slots::rotational_velocity::enc(self.speed)[1],
-            self.torque.unwrap_or(PDU_NOT_AVAILABLE),
+            slots::position_level2::enc(self.torque),
             PDU_NOT_AVAILABLE,
             PDU_NOT_AVAILABLE,
             PDU_NOT_AVAILABLE,
@@ -1560,6 +1556,47 @@ impl core::fmt::Display for ElectronicBrakeController1Message {
             self.source_address,
             self.trailer_abs_status,
             self.tractor_mounted_trailer_abs_warning_signal
+        )
+    }
+}
+
+//
+// TANK Information 1
+//
+
+pub struct TankInformation1Message {
+    /// A special catalyst uses chemical substance to reach legal requirement for NOX emissions.
+    /// This parameter indicates the level within that catalyst tank. 0 % = Empty 100% = Full.
+    pub catalyst_tank_level: Option<u8>,
+}
+
+impl TankInformation1Message {
+    pub fn from_pdu(pdu: &[u8]) -> Self {
+        Self {
+            catalyst_tank_level: slots::position_level::dec(pdu[0]),
+        }
+    }
+
+    pub fn to_pdu(&self) -> [u8; 8] {
+        [
+            slots::position_level::enc(self.catalyst_tank_level),
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+            PDU_NOT_AVAILABLE,
+        ]
+    }
+}
+
+impl core::fmt::Display for TankInformation1Message {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "Catalyst tank level: {}%",
+            self.catalyst_tank_level.unwrap_or(0)
         )
     }
 }

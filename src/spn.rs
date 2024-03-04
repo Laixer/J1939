@@ -1684,4 +1684,78 @@ mod tests {
         assert_eq!(torque_speed_decoded.speed, Some(1234));
         assert_eq!(torque_speed_decoded.torque, Some(56));
     }
+
+    #[test]
+    fn electronic_brake_controller1_message() {
+        let brake_message_encoded = ElectronicBrakeController1Message {
+            asr_engine_control_active: Some(false),
+            asr_brake_control_active: Some(true),
+            abs_active: Some(false),
+            ebs_brake_switch: Some(true),
+            brake_pedal_position: Some(2),
+            abs_off_road_switch: Some(false),
+            asr_off_road_switch: Some(false),
+            asr_hill_holder_switch: Some(true),
+            traction_control_override_switch: Some(true),
+            accelerator_interlock_switch: Some(true),
+            engine_derate_switch: Some(false),
+            auxiliary_engine_shutdown_switch: Some(true),
+            remote_accelerator_enable_switch: Some(false),
+            engine_retarder_selection: Some(64),
+            abs_fully_operational: Some(false),
+            ebs_red_warning_signal: Some(false),
+            abs_ebs_amber_warning_signal: Some(true),
+            atc_asr_information_signal: Some(false),
+            source_address: Some(0),
+            trailer_abs_status: Some(false),
+            tractor_mounted_trailer_abs_warning_signal: Some(true),
+        }
+        .to_pdu();
+
+        let brake_message_decoded =
+            ElectronicBrakeController1Message::from_pdu(&brake_message_encoded);
+
+        assert_eq!(brake_message_decoded.asr_engine_control_active, Some(false));
+        assert_eq!(brake_message_decoded.asr_brake_control_active, Some(true));
+        assert_eq!(brake_message_decoded.abs_active, Some(false));
+        assert_eq!(brake_message_decoded.ebs_brake_switch, Some(true));
+        assert_eq!(brake_message_decoded.brake_pedal_position, Some(2));
+        assert_eq!(brake_message_decoded.abs_off_road_switch, Some(false));
+        assert_eq!(brake_message_decoded.asr_off_road_switch, Some(false));
+        assert_eq!(brake_message_decoded.asr_hill_holder_switch, Some(true));
+        assert_eq!(
+            brake_message_decoded.traction_control_override_switch,
+            Some(true)
+        );
+        assert_eq!(
+            brake_message_decoded.accelerator_interlock_switch,
+            Some(true)
+        );
+        assert_eq!(brake_message_decoded.engine_derate_switch, Some(false));
+        assert_eq!(
+            brake_message_decoded.auxiliary_engine_shutdown_switch,
+            Some(true)
+        );
+        assert_eq!(
+            brake_message_decoded.remote_accelerator_enable_switch,
+            Some(false)
+        );
+        assert_eq!(brake_message_decoded.engine_retarder_selection, Some(64));
+        assert_eq!(brake_message_decoded.abs_fully_operational, Some(false));
+        assert_eq!(brake_message_decoded.ebs_red_warning_signal, Some(false));
+        assert_eq!(
+            brake_message_decoded.abs_ebs_amber_warning_signal,
+            Some(true)
+        );
+        assert_eq!(
+            brake_message_decoded.atc_asr_information_signal,
+            Some(false)
+        );
+        assert_eq!(brake_message_decoded.source_address, Some(0));
+        assert_eq!(brake_message_decoded.trailer_abs_status, Some(false));
+        assert_eq!(
+            brake_message_decoded.tractor_mounted_trailer_abs_warning_signal,
+            Some(true)
+        );
+    }
 }

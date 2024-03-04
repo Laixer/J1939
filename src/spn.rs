@@ -469,9 +469,9 @@ pub struct TorqueSpeedControl1Message {
 impl TorqueSpeedControl1Message {
     pub fn from_pdu(pdu: &[u8]) -> Self {
         Self {
-            override_control_mode: OverrideControlMode::from_value(pdu[0] & 0b11),
-            speed_control_condition: RequestedSpeedControlCondition::from_value(pdu[0] >> 2 & 0b11),
-            control_mode_priority: OverrideControlModePriority::from_value(pdu[0] >> 4 & 0b11),
+            override_control_mode: OverrideControlMode::from_value(pdu[0]),
+            speed_control_condition: RequestedSpeedControlCondition::from_value(pdu[0] >> 2),
+            control_mode_priority: OverrideControlModePriority::from_value(pdu[0] >> 4),
             speed: slots::rotational_velocity::dec([pdu[1], pdu[2]]),
             torque: if pdu[3] != PDU_NOT_AVAILABLE {
                 Some(pdu[3])
@@ -1656,7 +1656,7 @@ mod tests {
     }
 
     #[test]
-    fn torque_speed_control_message_1() {
+    fn torque_speed_control_1_message_1() {
         let torque_speed_encoded = TorqueSpeedControl1Message {
             override_control_mode: Some(OverrideControlMode::SpeedControl),
             speed_control_condition: Some(
@@ -1686,7 +1686,37 @@ mod tests {
     }
 
     #[test]
-    fn electronic_brake_controller1_message_1() {
+    fn torque_speed_control_1_message_2() {
+        let torque_speed_encoded = TorqueSpeedControl1Message {
+            override_control_mode: Some(OverrideControlMode::SpeedTorqueLimitControl),
+            speed_control_condition: Some(
+                RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged1,
+            ),
+            control_mode_priority: Some(OverrideControlModePriority::MediumPriority),
+            speed: None,
+            torque: None,
+        }
+        .to_pdu();
+        let torque_speed_decoded = TorqueSpeedControl1Message::from_pdu(&torque_speed_encoded);
+
+        assert_eq!(
+            torque_speed_decoded.override_control_mode,
+            Some(OverrideControlMode::SpeedTorqueLimitControl)
+        );
+        assert_eq!(
+            torque_speed_decoded.speed_control_condition,
+            Some(RequestedSpeedControlCondition::StabilityOptimizedDriveLineEngaged1)
+        );
+        assert_eq!(
+            torque_speed_decoded.control_mode_priority,
+            Some(OverrideControlModePriority::MediumPriority)
+        );
+        assert_eq!(torque_speed_decoded.speed, None);
+        assert_eq!(torque_speed_decoded.torque, None);
+    }
+
+    #[test]
+    fn electronic_brake_controller_1_message_1() {
         let brake_message_encoded = ElectronicBrakeController1Message {
             asr_engine_control_active: Some(false),
             asr_brake_control_active: Some(true),
@@ -1760,7 +1790,7 @@ mod tests {
     }
 
     #[test]
-    fn electronic_brake_controller1_message_2() {
+    fn electronic_brake_controller_1_message_2() {
         let brake_message_encoded = ElectronicBrakeController1Message {
             asr_engine_control_active: None,
             asr_brake_control_active: None,

@@ -88,7 +88,7 @@ pub mod rotational_velocity {
             return None;
         }
 
-        Some(RESOLUTION.dec(i16::from_le_bytes(value) as f32) as u16)
+        Some(RESOLUTION.dec(u16::from_le_bytes(value) as f32) as u16)
     }
 
     pub fn enc(value: Option<u16>) -> [u8; 2] {
@@ -139,6 +139,71 @@ pub mod temperature2 {
 
     pub fn enc(value: Option<i8>) -> u8 {
         value.map_or(crate::PDU_NOT_AVAILABLE, |v| RESOLUTION.enc(v as f32) as u8)
+    }
+}
+
+pub mod electrical_current {
+    const RESOLUTION: super::Param = super::Param {
+        scale: 1.0,
+        offset: -125.0,
+        limit_lower: -125.0,
+        limit_upper: 125.0,
+    };
+
+    pub fn dec(value: u8) -> Option<i8> {
+        if value == crate::PDU_NOT_AVAILABLE {
+            return None;
+        }
+
+        Some(RESOLUTION.dec(value as f32) as i8)
+    }
+
+    pub fn enc(value: Option<i8>) -> u8 {
+        value.map_or(crate::PDU_NOT_AVAILABLE, |v| RESOLUTION.enc(v as f32) as u8)
+    }
+}
+
+pub mod electrical_current2 {
+    const RESOLUTION: super::Param = super::Param {
+        scale: 1.0,
+        offset: 0.0,
+        limit_lower: 0.0,
+        limit_upper: 250.0,
+    };
+
+    pub fn dec(value: u8) -> Option<u8> {
+        if value == crate::PDU_NOT_AVAILABLE {
+            return None;
+        }
+
+        Some(RESOLUTION.dec(value as f32) as u8)
+    }
+
+    pub fn enc(value: Option<u8>) -> u8 {
+        value.map_or(crate::PDU_NOT_AVAILABLE, |v| RESOLUTION.enc(v as f32) as u8)
+    }
+}
+
+pub mod electrical_voltage {
+    const RESOLUTION: super::Param = super::Param {
+        scale: 0.05,
+        offset: 0.0,
+        limit_lower: 0.0,
+        limit_upper: 3212.75,
+    };
+
+    pub fn dec(value: [u8; 2]) -> Option<u16> {
+        if value == [crate::PDU_NOT_AVAILABLE; 2] {
+            return None;
+        }
+
+        Some(RESOLUTION.dec(u16::from_le_bytes(value) as f32) as u16)
+    }
+
+    pub fn enc(value: Option<u16>) -> [u8; 2] {
+        value.map_or([crate::PDU_NOT_AVAILABLE; 2], |v| {
+            (RESOLUTION.enc(v as f32) as u16).to_le_bytes()
+        })
     }
 }
 

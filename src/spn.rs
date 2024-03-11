@@ -1604,6 +1604,72 @@ impl core::fmt::Display for TankInformation1Message {
     }
 }
 
+//Bit Start Position /Bytes Length SPN Description SPN
+//
+//1 1 byte       Net Battery Current 114
+//2 1 byte       Alternator Current 115
+//3-4 2 bytes    Alternator Potential (Voltage) 167
+//5-6 2 bytes    Electrical Potential (Voltage) 168
+//7-8 2 bytes    Battery Potential (Voltage), Switched 158
+
+//
+// Vehicle Electrical Power
+//
+
+pub struct VehicleElectricalPowerMessage {
+    /// Net flow of electrical current into/out of the battery or batteries.
+    pub net_battery_current: Option<i8>,
+    /// Measure of electrical current flow from the alternator. Alternator Current (High
+    /// Range/Resolution) parameter SPN 1795 has a higher range and resolution of the same parameter.
+    pub alternator_current: Option<u8>,
+    /// Electrical potential measured at the alternator output.
+    pub alternator_potential: Option<u16>,
+    /// Measured electrical potential of the battery.
+    pub electrical_potential: Option<u16>,
+    /// Electrical potential measured at the input of the electronic control
+    /// unit supplied through a switching device.
+    pub battery_potential: Option<u16>,
+}
+
+impl VehicleElectricalPowerMessage {
+    pub fn from_pdu(pdu: &[u8]) -> Self {
+        Self {
+            net_battery_current: slots::electrical_current::dec(pdu[0]),
+            alternator_current: slots::electrical_current2::dec(pdu[1]),
+            alternator_potential: slots::electrical_voltage::dec([pdu[2], pdu[3]]),
+            electrical_potential: slots::electrical_voltage::dec([pdu[4], pdu[5]]),
+            battery_potential: slots::electrical_voltage::dec([pdu[6], pdu[7]]),
+        }
+    }
+
+    pub fn to_pdu(&self) -> [u8; 8] {
+        [
+            slots::electrical_current::enc(self.net_battery_current),
+            slots::electrical_current2::enc(self.alternator_current),
+            slots::electrical_voltage::enc(self.alternator_potential)[0],
+            slots::electrical_voltage::enc(self.alternator_potential)[1],
+            slots::electrical_voltage::enc(self.electrical_potential)[0],
+            slots::electrical_voltage::enc(self.electrical_potential)[1],
+            slots::electrical_voltage::enc(self.battery_potential)[0],
+            slots::electrical_voltage::enc(self.battery_potential)[1],
+        ]
+    }
+}
+
+impl core::fmt::Display for VehicleElectricalPowerMessage {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "Net battery current: {} A; Alternator current: {} A; Alternator potential: {} V; Electrical potential: {} V; Battery potential: {} V",
+            self.net_battery_current.unwrap_or(0),
+            self.alternator_current.unwrap_or(0),
+            self.alternator_potential.unwrap_or(0),
+            self.electrical_potential.unwrap_or(0),
+            self.battery_potential.unwrap_or(0)
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1863,5 +1929,34 @@ mod tests {
             brake_message_decoded.tractor_mounted_trailer_abs_warning_signal,
             None
         );
+    }
+
+    #[test]
+    fn vehicle_electrical_power_message() {
+        let electrical_power_message_encoded = VehicleElectricalPowerMessage {
+            net_battery_current: Some(-16),
+            alternator_current: Some(5),
+            alternator_potential: Some(235),
+            electrical_potential: Some(1731),
+            battery_potential: Some(947),
+        }
+        .to_pdu();
+        let electrical_power_message_decoded =
+            VehicleElectricalPowerMessage::from_pdu(&electrical_power_message_encoded);
+
+        assert_eq!(
+            electrical_power_message_decoded.net_battery_current,
+            Some(-16)
+        );
+        assert_eq!(electrical_power_message_decoded.alternator_current, Some(5));
+        assert_eq!(
+            electrical_power_message_decoded.alternator_potential,
+            Some(235)
+        );
+        assert_eq!(
+            electrical_power_message_decoded.electrical_potential,
+            Some(1731)
+        );
+        assert_eq!(electrical_power_message_decoded.battery_potential, Some(947));
     }
 }

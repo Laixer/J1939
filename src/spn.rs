@@ -68,21 +68,21 @@ pub enum EngineTorqueMode {
 
 impl EngineTorqueMode {
     pub fn from_value(value: u8) -> Option<Self> {
-        if value != PDU_NOT_AVAILABLE {
+        if value != 0b1111 {
             let mode = match value & 0b1111 {
-                0b0000 => EngineTorqueMode::NoRequest,
-                0b0001 => EngineTorqueMode::AcceleratorPedal,
-                0b0010 => EngineTorqueMode::CruiseControl,
-                0b0011 => EngineTorqueMode::PTOGovernor,
-                0b0100 => EngineTorqueMode::RoadSpeedGovernor,
-                0b0101 => EngineTorqueMode::ASRControl,
-                0b0110 => EngineTorqueMode::TransmissionControl,
-                0b0111 => EngineTorqueMode::ABSControl,
-                0b1000 => EngineTorqueMode::TorqueLimiting,
-                0b1001 => EngineTorqueMode::HighSpeedGovernor,
-                0b1010 => EngineTorqueMode::BrakingSystem,
-                0b1011 => EngineTorqueMode::RemoteAccelerator,
-                0b1100..=0b1110 => EngineTorqueMode::Other,
+                0b0000 => Self::NoRequest,
+                0b0001 => Self::AcceleratorPedal,
+                0b0010 => Self::CruiseControl,
+                0b0011 => Self::PTOGovernor,
+                0b0100 => Self::RoadSpeedGovernor,
+                0b0101 => Self::ASRControl,
+                0b0110 => Self::TransmissionControl,
+                0b0111 => Self::ABSControl,
+                0b1000 => Self::TorqueLimiting,
+                0b1001 => Self::HighSpeedGovernor,
+                0b1010 => Self::BrakingSystem,
+                0b1011 => Self::RemoteAccelerator,
+                0b1100..=0b1110 => Self::Other,
                 _ => unreachable!(),
             };
 
@@ -94,19 +94,19 @@ impl EngineTorqueMode {
 
     pub fn to_value(mode: Self) -> u8 {
         match mode {
-            EngineTorqueMode::NoRequest => 0b0000,
-            EngineTorqueMode::AcceleratorPedal => 0b0001,
-            EngineTorqueMode::CruiseControl => 0b0010,
-            EngineTorqueMode::PTOGovernor => 0b0011,
-            EngineTorqueMode::RoadSpeedGovernor => 0b0100,
-            EngineTorqueMode::ASRControl => 0b0101,
-            EngineTorqueMode::TransmissionControl => 0b0110,
-            EngineTorqueMode::ABSControl => 0b0111,
-            EngineTorqueMode::TorqueLimiting => 0b1000,
-            EngineTorqueMode::HighSpeedGovernor => 0b1001,
-            EngineTorqueMode::BrakingSystem => 0b1010,
-            EngineTorqueMode::RemoteAccelerator => 0b1011,
-            EngineTorqueMode::Other => 0b1111,
+            Self::NoRequest => 0b0000,
+            Self::AcceleratorPedal => 0b0001,
+            Self::CruiseControl => 0b0010,
+            Self::PTOGovernor => 0b0011,
+            Self::RoadSpeedGovernor => 0b0100,
+            Self::ASRControl => 0b0101,
+            Self::TransmissionControl => 0b0110,
+            Self::ABSControl => 0b0111,
+            Self::TorqueLimiting => 0b1000,
+            Self::HighSpeedGovernor => 0b1001,
+            Self::BrakingSystem => 0b1010,
+            Self::RemoteAccelerator => 0b1011,
+            Self::Other => 0b1111,
         }
     }
 }
@@ -124,23 +124,25 @@ pub enum EngineStarterMode {
     StarterInhibitedOverHeat,
     StarterInhibitedReasonUnknown,
     Error,
+    Reserved,
 }
 
 impl EngineStarterMode {
     pub fn from_value(value: u8) -> Option<Self> {
-        if value != PDU_NOT_AVAILABLE {
+        if value != 0b1111 {
             let mode = match value & 0b1111 {
-                0b0000 => EngineStarterMode::StartNotRequested,
-                0b0001 => EngineStarterMode::StarterActiveGearNotEngaged,
-                0b0010 => EngineStarterMode::StarterActiveGearEngaged,
-                0b0011 => EngineStarterMode::StartFinished,
-                0b0100 => EngineStarterMode::StarterInhibitedEngineRunning,
-                0b0101 => EngineStarterMode::StarterInhibitedEngineNotReady,
-                0b0110 => EngineStarterMode::StarterInhibitedTransmissionInhibited,
-                0b0111 => EngineStarterMode::StarterInhibitedActiveImmobilizer,
-                0b1000 => EngineStarterMode::StarterInhibitedOverHeat,
-                0b1100 => EngineStarterMode::StarterInhibitedReasonUnknown,
-                0b1101 | 0b1110 => EngineStarterMode::Error,
+                0b0000 => Self::StartNotRequested,
+                0b0001 => Self::StarterActiveGearNotEngaged,
+                0b0010 => Self::StarterActiveGearEngaged,
+                0b0011 => Self::StartFinished,
+                0b0100 => Self::StarterInhibitedEngineRunning,
+                0b0101 => Self::StarterInhibitedEngineNotReady,
+                0b0110 => Self::StarterInhibitedTransmissionInhibited,
+                0b0111 => Self::StarterInhibitedActiveImmobilizer,
+                0b1000 => Self::StarterInhibitedOverHeat,
+                0b1001..=0b1011 => Self::Reserved,
+                0b1100 => Self::StarterInhibitedReasonUnknown,
+                0b1101 | 0b1110 => Self::Error,
                 _ => unreachable!(),
             };
 
@@ -152,17 +154,18 @@ impl EngineStarterMode {
 
     pub fn to_value(mode: Self) -> u8 {
         match mode {
-            EngineStarterMode::StartNotRequested => 0b0000,
-            EngineStarterMode::StarterActiveGearNotEngaged => 0b0001,
-            EngineStarterMode::StarterActiveGearEngaged => 0b0010,
-            EngineStarterMode::StartFinished => 0b0011,
-            EngineStarterMode::StarterInhibitedEngineRunning => 0b0100,
-            EngineStarterMode::StarterInhibitedEngineNotReady => 0b0101,
-            EngineStarterMode::StarterInhibitedTransmissionInhibited => 0b0110,
-            EngineStarterMode::StarterInhibitedActiveImmobilizer => 0b0111,
-            EngineStarterMode::StarterInhibitedOverHeat => 0b1000,
-            EngineStarterMode::StarterInhibitedReasonUnknown => 0b1100,
-            EngineStarterMode::Error => 0b1101,
+            Self::StartNotRequested => 0b0000,
+            Self::StarterActiveGearNotEngaged => 0b0001,
+            Self::StarterActiveGearEngaged => 0b0010,
+            Self::StartFinished => 0b0011,
+            Self::StarterInhibitedEngineRunning => 0b0100,
+            Self::StarterInhibitedEngineNotReady => 0b0101,
+            Self::StarterInhibitedTransmissionInhibited => 0b0110,
+            Self::StarterInhibitedActiveImmobilizer => 0b0111,
+            Self::StarterInhibitedOverHeat => 0b1000,
+            Self::Reserved => 0b1001,
+            Self::StarterInhibitedReasonUnknown => 0b1100,
+            Self::Error => 0b1101,
         }
     }
 }

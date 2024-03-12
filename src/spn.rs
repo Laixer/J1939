@@ -1715,6 +1715,22 @@ mod tests {
 
     #[test]
     fn electronic_engine_controller_1_message_5() {
+        let engine_message = ElectronicEngineController1Message::from_pdu(&[
+            0xFF, 0xAC, 0x7D, 0x00, 0x00, 0x32, 0x00, 0x00,
+        ]);
+        assert_eq!(engine_message.engine_torque_mode, None);
+        assert_eq!(engine_message.driver_demand, Some(47));
+        assert_eq!(engine_message.actual_engine, Some(0));
+        assert_eq!(engine_message.rpm, Some(0));
+        assert_eq!(engine_message.source_addr, Some(0x32));
+        assert_eq!(
+            engine_message.starter_mode,
+            Some(EngineStarterMode::StartNotRequested)
+        );
+    }
+
+    #[test]
+    fn electronic_engine_controller_1_message_6() {
         let engine_message_encoded = ElectronicEngineController1Message {
             engine_torque_mode: Some(EngineTorqueMode::HighSpeedGovernor),
             driver_demand: Some(93),

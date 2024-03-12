@@ -55,6 +55,18 @@ pub enum PGN {
     FanDrive,
     /// EEC4 - Electronic Engine Controller 4.
     ElectronicEngineController4,
+    /// DM1 - Diagnostic Message 1 - Active Diagnostics Trouble Codes.
+    DiagnosticMessage1,
+    /// DM2 - Diagnostic Message 2 - Previously Active Diagnostics Trouble Codes.
+    DiagnosticMessage2,
+    /// DM3 - Diagnostic Message 3 - Diagnostics Data Clear of Previously Active DTCs.
+    DiagnosticMessage3,
+    /// DM4 - Diagnostic Message 4 - Freeze Frame Parameters.
+    DiagnosticMessage4,
+    /// DM11 - Diagnostic Message 11 - Diagnostics Data Clear of Active DTCs.
+    DiagnosticMessage11,
+    /// DM12 - Emission Related Active DTCs.
+    DiagnosticMessage12,
     /// SOFT - Software Identification.
     SoftwareIdentification,
     /// IO - Idle Operation.
@@ -203,6 +215,12 @@ impl From<u32> for PGN {
             65_201 => PGN::ECUHistory,
             65_213 => PGN::FanDrive,
             65_214 => PGN::ElectronicEngineController4,
+            65_226 => PGN::DiagnosticMessage1,
+            65_227 => PGN::DiagnosticMessage2,
+            65_228 => PGN::DiagnosticMessage3,
+            65_229 => PGN::DiagnosticMessage4,
+            65_235 => PGN::DiagnosticMessage11,
+            65_236 => PGN::DiagnosticMessage12,
             65_240 => PGN::CommandedAddress,
             65_241 => PGN::AuxiliaryInputOutputStatus,
             65_242 => PGN::SoftwareIdentification,
@@ -280,6 +298,12 @@ impl From<PGN> for u32 {
             PGN::ECUHistory => 65_201,
             PGN::FanDrive => 65_213,
             PGN::ElectronicEngineController4 => 65_214,
+            PGN::DiagnosticMessage1 => 65_226,
+            PGN::DiagnosticMessage2 => 65_227,
+            PGN::DiagnosticMessage3 => 65_228,
+            PGN::DiagnosticMessage4 => 65_229,
+            PGN::DiagnosticMessage11 => 65_235,
+            PGN::DiagnosticMessage12 => 65_236,
             PGN::CommandedAddress => 65_240,
             PGN::AuxiliaryInputOutputStatus => 65_241,
             PGN::SoftwareIdentification => 65_242,

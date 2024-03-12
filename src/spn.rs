@@ -68,27 +68,21 @@ pub enum EngineTorqueMode {
 
 impl EngineTorqueMode {
     pub fn from_value(value: u8) -> Option<Self> {
-        if value != 0b1111 {
-            let mode = match value & 0b1111 {
-                0b0000 => Self::NoRequest,
-                0b0001 => Self::AcceleratorPedal,
-                0b0010 => Self::CruiseControl,
-                0b0011 => Self::PTOGovernor,
-                0b0100 => Self::RoadSpeedGovernor,
-                0b0101 => Self::ASRControl,
-                0b0110 => Self::TransmissionControl,
-                0b0111 => Self::ABSControl,
-                0b1000 => Self::TorqueLimiting,
-                0b1001 => Self::HighSpeedGovernor,
-                0b1010 => Self::BrakingSystem,
-                0b1011 => Self::RemoteAccelerator,
-                0b1100..=0b1110 => Self::Other,
-                _ => unreachable!(),
-            };
-
-            Some(mode)
-        } else {
-            None
+        match value & 0b1111 {
+            0b0000 => Some(Self::NoRequest),
+            0b0001 => Some(Self::AcceleratorPedal),
+            0b0010 => Some(Self::CruiseControl),
+            0b0011 => Some(Self::PTOGovernor),
+            0b0100 => Some(Self::RoadSpeedGovernor),
+            0b0101 => Some(Self::ASRControl),
+            0b0110 => Some(Self::TransmissionControl),
+            0b0111 => Some(Self::ABSControl),
+            0b1000 => Some(Self::TorqueLimiting),
+            0b1001 => Some(Self::HighSpeedGovernor),
+            0b1010 => Some(Self::BrakingSystem),
+            0b1011 => Some(Self::RemoteAccelerator),
+            0b1100..=0b1110 => Some(Self::Other),
+            _ => None,
         }
     }
 
@@ -129,26 +123,20 @@ pub enum EngineStarterMode {
 
 impl EngineStarterMode {
     pub fn from_value(value: u8) -> Option<Self> {
-        if value != 0b1111 {
-            let mode = match value & 0b1111 {
-                0b0000 => Self::StartNotRequested,
-                0b0001 => Self::StarterActiveGearNotEngaged,
-                0b0010 => Self::StarterActiveGearEngaged,
-                0b0011 => Self::StartFinished,
-                0b0100 => Self::StarterInhibitedEngineRunning,
-                0b0101 => Self::StarterInhibitedEngineNotReady,
-                0b0110 => Self::StarterInhibitedTransmissionInhibited,
-                0b0111 => Self::StarterInhibitedActiveImmobilizer,
-                0b1000 => Self::StarterInhibitedOverHeat,
-                0b1001..=0b1011 => Self::Reserved,
-                0b1100 => Self::StarterInhibitedReasonUnknown,
-                0b1101 | 0b1110 => Self::Error,
-                _ => unreachable!(),
-            };
-
-            Some(mode)
-        } else {
-            None
+        match value & 0b1111 {
+            0b0000 => Some(Self::StartNotRequested),
+            0b0001 => Some(Self::StarterActiveGearNotEngaged),
+            0b0010 => Some(Self::StarterActiveGearEngaged),
+            0b0011 => Some(Self::StartFinished),
+            0b0100 => Some(Self::StarterInhibitedEngineRunning),
+            0b0101 => Some(Self::StarterInhibitedEngineNotReady),
+            0b0110 => Some(Self::StarterInhibitedTransmissionInhibited),
+            0b0111 => Some(Self::StarterInhibitedActiveImmobilizer),
+            0b1000 => Some(Self::StarterInhibitedOverHeat),
+            0b1001..=0b1011 => Some(Self::Reserved),
+            0b1100 => Some(Self::StarterInhibitedReasonUnknown),
+            0b1101 | 0b1110 => Some(Self::Error),
+            _ => None,
         }
     }
 
@@ -1005,29 +993,23 @@ pub enum FanDriveState {
 
 impl FanDriveState {
     pub fn from_value(value: u8) -> Option<Self> {
-        if value != 0b1111 {
-            let mode = match value & 0b1111 {
-                0b0000 => Self::FanOff,
-                0b0001 => Self::EngineSystemGeneral,
-                0b0010 => Self::ExcessiveEngineAirTemperature,
-                0b0011 => Self::ExcessiveEngineOilTemperature,
-                0b0100 => Self::ExcessiveEngineCoolantTemperature,
-                0b0101 => Self::ExcessiveTransmissionOilTemperature,
-                0b0110 => Self::ExcessiveHydraulicOilTemperature,
-                0b0111 => Self::DefaultOperation,
-                0b1000 => Self::NotDefined,
-                0b1001 => Self::ManualControl,
-                0b1010 => Self::TransmissionRetarder,
-                0b1011 => Self::ACSystem,
-                0b1100 => Self::Timer,
-                0b1101 => Self::EngineBrake,
-                0b1110 => Self::Other,
-                _ => unreachable!(),
-            };
-
-            Some(mode)
-        } else {
-            None
+        match value & 0b1111 {
+            0b0000 => Some(Self::FanOff),
+            0b0001 => Some(Self::EngineSystemGeneral),
+            0b0010 => Some(Self::ExcessiveEngineAirTemperature),
+            0b0011 => Some(Self::ExcessiveEngineOilTemperature),
+            0b0100 => Some(Self::ExcessiveEngineCoolantTemperature),
+            0b0101 => Some(Self::ExcessiveTransmissionOilTemperature),
+            0b0110 => Some(Self::ExcessiveHydraulicOilTemperature),
+            0b0111 => Some(Self::DefaultOperation),
+            0b1000 => Some(Self::NotDefined),
+            0b1001 => Some(Self::ManualControl),
+            0b1010 => Some(Self::TransmissionRetarder),
+            0b1011 => Some(Self::ACSystem),
+            0b1100 => Some(Self::Timer),
+            0b1101 => Some(Self::EngineBrake),
+            0b1110 => Some(Self::Other),
+            _ => None,
         }
     }
 
@@ -1074,7 +1056,8 @@ impl FanDriveMessage {
     pub fn to_pdu(&self) -> [u8; 8] {
         [
             slots::position_level::enc(self.estimated_percent_fan_speed),
-            FanDriveState::to_value(self.fan_drive_state.unwrap_or(FanDriveState::FanOff)),
+            self.fan_drive_state
+                .map_or(PDU_NOT_AVAILABLE, FanDriveState::to_value),
             slots::rotational_velocity::enc(self.fan_speed)[0],
             slots::rotational_velocity::enc(self.fan_speed)[1],
             PDU_NOT_AVAILABLE,
@@ -1604,14 +1587,6 @@ impl core::fmt::Display for TankInformation1Message {
     }
 }
 
-//Bit Start Position /Bytes Length SPN Description SPN
-//
-//1 1 byte       Net Battery Current 114
-//2 1 byte       Alternator Current 115
-//3-4 2 bytes    Alternator Potential (Voltage) 167
-//5-6 2 bytes    Electrical Potential (Voltage) 168
-//7-8 2 bytes    Battery Potential (Voltage), Switched 158
-
 //
 // Vehicle Electrical Power
 //
@@ -1675,7 +1650,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn engine_controller_message_1() {
+    fn electronic_engine_controller_1_message_1() {
         let engine_message = ElectronicEngineController1Message::from_pdu(&[
             0xF0, 0xEA, 0x7D, 0x00, 0x00, 0x00, 0xF0, 0xFF,
         ]);
@@ -1694,7 +1669,7 @@ mod tests {
     }
 
     #[test]
-    fn engine_controller_message_2() {
+    fn electronic_engine_controller_1_message_2() {
         let engine_message = ElectronicEngineController1Message::from_pdu(&[
             0xF3, 0x91, 0x91, 0xAA, 0x18, 0x00, 0xF3, 0xFF,
         ]);
@@ -1713,7 +1688,20 @@ mod tests {
     }
 
     #[test]
-    fn engine_controller_message_3() {
+    fn electronic_engine_controller_1_message_3() {
+        let engine_message = ElectronicEngineController1Message::from_pdu(&[
+            0xFF, 0x91, 0x91, 0xAA, 0x18, 0x00, 0xFF, 0xFF,
+        ]);
+        assert_eq!(engine_message.engine_torque_mode, None);
+        assert_eq!(engine_message.driver_demand, Some(20));
+        assert_eq!(engine_message.actual_engine, Some(20));
+        assert_eq!(engine_message.rpm, Some(789));
+        assert_eq!(engine_message.source_addr, Some(0));
+        assert_eq!(engine_message.starter_mode, None);
+    }
+
+    #[test]
+    fn electronic_engine_controller_1_message_4() {
         let engine_message_encoded = ElectronicEngineController1Message {
             engine_torque_mode: Some(EngineTorqueMode::HighSpeedGovernor),
             driver_demand: Some(93),
@@ -1796,6 +1784,41 @@ mod tests {
         );
         assert_eq!(torque_speed_decoded.speed, None);
         assert_eq!(torque_speed_decoded.torque, None);
+    }
+
+    #[test]
+    fn fan_drive_message_1() {
+        let fan_drive_encoded = FanDriveMessage {
+            estimated_percent_fan_speed: Some(50),
+            fan_drive_state: Some(FanDriveState::ExcessiveHydraulicOilTemperature),
+            fan_speed: Some(1000),
+        }
+        .to_pdu();
+
+        let fan_drive_decoded = FanDriveMessage::from_pdu(&fan_drive_encoded);
+
+        assert_eq!(fan_drive_decoded.estimated_percent_fan_speed, Some(50));
+        assert_eq!(
+            fan_drive_decoded.fan_drive_state,
+            Some(FanDriveState::ExcessiveHydraulicOilTemperature)
+        );
+        assert_eq!(fan_drive_decoded.fan_speed, Some(1000));
+    }
+
+    #[test]
+    fn fan_drive_message_2() {
+        let fan_drive_encoded = FanDriveMessage {
+            estimated_percent_fan_speed: None,
+            fan_drive_state: None,
+            fan_speed: None,
+        }
+        .to_pdu();
+
+        let fan_drive_decoded = FanDriveMessage::from_pdu(&fan_drive_encoded);
+
+        assert_eq!(fan_drive_decoded.estimated_percent_fan_speed, None);
+        assert_eq!(fan_drive_decoded.fan_drive_state, None);
+        assert_eq!(fan_drive_decoded.fan_speed, None);
     }
 
     #[test]
@@ -1957,6 +1980,9 @@ mod tests {
             electrical_power_message_decoded.electrical_potential,
             Some(1731)
         );
-        assert_eq!(electrical_power_message_decoded.battery_potential, Some(947));
+        assert_eq!(
+            electrical_power_message_decoded.battery_potential,
+            Some(947)
+        );
     }
 }

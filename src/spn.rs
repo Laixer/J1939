@@ -1647,7 +1647,6 @@ impl core::fmt::Display for VehicleElectricalPowerMessage {
 // Engine Fluid Level/Pressure 2
 //
 
-// TODO: Not tested
 pub struct EngineFluidLevelPressure2Message {
     /// The gage pressure of the engine oil in the hydraulic accumulator that powers an
     /// intensifier used for fuel injection.
@@ -2018,6 +2017,35 @@ mod tests {
         assert_eq!(fan_drive_decoded.estimated_percent_fan_speed, None);
         assert_eq!(fan_drive_decoded.fan_drive_state, None);
         assert_eq!(fan_drive_decoded.fan_speed, None);
+    }
+
+    #[test]
+    fn shutdown_message_1() {
+        let shutdown = ShutdownMessage::from_pdu(&[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+
+        assert_eq!(shutdown.idle_shutdown_has_shutdown_engine, Some(false));
+        assert_eq!(shutdown.idle_shutdown_driver_alert_mode, Some(false));
+        assert_eq!(shutdown.idle_shutdown_timer_override, Some(false));
+        assert_eq!(shutdown.idle_shutdown_timer_state, Some(false));
+        assert_eq!(shutdown.idle_shutdown_timer_function, Some(false));
+        assert_eq!(shutdown.ac_high_pressure_fan_switch, Some(false));
+        assert_eq!(shutdown.refrigerant_low_pressure_switch, Some(false));
+        assert_eq!(shutdown.refrigerant_high_pressure_switch, Some(false));
+        assert_eq!(shutdown.wait_to_start_lamp, Some(false));
+        assert_eq!(
+            shutdown.engine_protection_system_has_shutdown_engine,
+            Some(false)
+        );
+        assert_eq!(
+            shutdown.engine_protection_system_approaching_shutdown,
+            Some(false)
+        );
+        assert_eq!(
+            shutdown.engine_protection_system_timer_override,
+            Some(false)
+        );
+        assert_eq!(shutdown.engine_protection_system_timer_state, Some(false));
+        assert_eq!(shutdown.engine_protection_system_configuration, Some(false));
     }
 
     #[test]

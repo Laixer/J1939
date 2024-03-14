@@ -1853,6 +1853,27 @@ mod tests {
 
     #[test]
     fn torque_speed_control_1_message_1() {
+        let torque_speed =
+            TorqueSpeedControl1Message::from_pdu(&[0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+
+        assert_eq!(
+            torque_speed.override_control_mode,
+            OverrideControlMode::OverrideDisabled
+        );
+        assert_eq!(
+            torque_speed.speed_control_condition,
+            RequestedSpeedControlCondition::TransientOptimizedDriveLineDisengaged
+        );
+        assert_eq!(
+            torque_speed.control_mode_priority,
+            OverrideControlModePriority::HighestPriority
+        );
+        assert_eq!(torque_speed.speed, Some(0));
+        assert_eq!(torque_speed.torque, Some(0));
+    }
+
+    #[test]
+    fn torque_speed_control_1_message_2() {
         let torque_speed_encoded = TorqueSpeedControl1Message {
             override_control_mode: OverrideControlMode::SpeedControl,
             speed_control_condition:
@@ -1881,7 +1902,7 @@ mod tests {
     }
 
     #[test]
-    fn torque_speed_control_1_message_2() {
+    fn torque_speed_control_1_message_3() {
         let torque_speed_encoded = TorqueSpeedControl1Message {
             override_control_mode: OverrideControlMode::SpeedTorqueLimitControl,
             speed_control_condition:
@@ -2176,7 +2197,20 @@ mod tests {
     }
 
     #[test]
-    fn vehicle_electrical_power_message() {
+    fn vehicle_electrical_power_message_1() {
+        let electrical_power = VehicleElectricalPowerMessage::from_pdu(&[
+            0xFF, 0xFF, 0xFF, 0xFF, 0xE3, 0x01, 0xE7, 0x01,
+        ]);
+
+        assert_eq!(electrical_power.net_battery_current, None);
+        assert_eq!(electrical_power.alternator_current, None);
+        assert_eq!(electrical_power.alternator_potential, None);
+        assert_eq!(electrical_power.electrical_potential, Some(24));
+        assert_eq!(electrical_power.battery_potential, Some(24));
+    }
+
+    #[test]
+    fn vehicle_electrical_power_message_2() {
         let electrical_power_message_encoded = VehicleElectricalPowerMessage {
             net_battery_current: Some(-16),
             alternator_current: Some(5),
@@ -2209,6 +2243,18 @@ mod tests {
 
     #[test]
     fn engine_fluid_level_pressure_2_message_1() {
+        let engine_fluid = EngineFluidLevelPressure2Message::from_pdu(&[
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        ]);
+
+        assert_eq!(engine_fluid.injection_control_pressure, Some(0));
+        assert_eq!(engine_fluid.injector_metering_rail1_pressure, Some(0));
+        assert_eq!(engine_fluid.injector_timing_rail1_pressure, Some(0));
+        assert_eq!(engine_fluid.injector_metering_rail2_pressure, Some(0));
+    }
+
+    #[test]
+    fn engine_fluid_level_pressure_2_message_2() {
         let engine_fluid_message_encoded = EngineFluidLevelPressure2Message {
             injection_control_pressure: Some(6),
             injector_metering_rail1_pressure: Some(81),

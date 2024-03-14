@@ -2,6 +2,7 @@
 #![deny(warnings)]
 #![no_std]
 
+pub mod diagnostic;
 mod name;
 mod pgn;
 pub mod protocol;

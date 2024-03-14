@@ -203,6 +203,28 @@ mod tests {
 
     #[test]
     fn diagnostic_1_message_4() {
+        let diagnostic_message =
+            Diagnostic1Message::from_pdu(&[0x00, 0xFF, 0x00, 0x00, 0x00, 0x00]);
+
+        assert_eq!(diagnostic_message.protect_lamp, Some(LampStatus::Off));
+        assert_eq!(diagnostic_message.amber_warning_lamp, Some(LampStatus::Off));
+        assert_eq!(diagnostic_message.red_stop_lamp, Some(LampStatus::Off));
+        assert_eq!(
+            diagnostic_message.malfunction_indicator_lamp,
+            Some(LampStatus::Off)
+        );
+        assert_eq!(diagnostic_message.protect_lamp_flash, None);
+        assert_eq!(diagnostic_message.amber_warning_lamp_flash, None);
+        assert_eq!(diagnostic_message.red_stop_lamp_flash, None);
+        assert_eq!(diagnostic_message.malfunction_indicator_lamp_flash, None);
+        assert_eq!(diagnostic_message.suspect_parameter_number, 0);
+        assert_eq!(diagnostic_message.failure_mode_identifier, 0);
+        assert_eq!(diagnostic_message.spn_conversion_method, 0);
+        assert_eq!(diagnostic_message.occurrence_count, 0);
+    }
+
+    #[test]
+    fn diagnostic_1_message_5() {
         let diagnostic_message_encoded = Diagnostic1Message {
             protect_lamp: Some(LampStatus::Off),
             amber_warning_lamp: Some(LampStatus::Off),
@@ -226,7 +248,7 @@ mod tests {
     }
 
     #[test]
-    fn diagnostic_1_message_5() {
+    fn diagnostic_1_message_6() {
         let diagnostic_message_encoded = Diagnostic1Message {
             protect_lamp: Some(LampStatus::On),
             amber_warning_lamp: Some(LampStatus::Off),

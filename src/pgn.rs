@@ -69,6 +69,8 @@ pub enum PGN {
     DiagnosticMessage12,
     /// SOFT - Software Identification.
     SoftwareIdentification,
+    /// EFL/P2 - Engine Fluid Level/Pressure 2.
+    EngineFluidLevelPressure2,
     /// IO - Idle Operation.
     IdleOperation,
     /// RQST - Request.
@@ -224,6 +226,7 @@ impl From<u32> for PGN {
             65_240 => PGN::CommandedAddress,
             65_241 => PGN::AuxiliaryInputOutputStatus,
             65_242 => PGN::SoftwareIdentification,
+            65_243 => PGN::EngineFluidLevelPressure2,
             65_244 => PGN::IdleOperation,
             65_247 => PGN::ElectronicEngineController3,
             65_248 => PGN::VehicleDistance,
@@ -307,6 +310,7 @@ impl From<PGN> for u32 {
             PGN::CommandedAddress => 65_240,
             PGN::AuxiliaryInputOutputStatus => 65_241,
             PGN::SoftwareIdentification => 65_242,
+            PGN::EngineFluidLevelPressure2 => 65_243,
             PGN::IdleOperation => 65_244,
             PGN::ElectronicEngineController3 => 65_247,
             PGN::VehicleDistance => 65_248,

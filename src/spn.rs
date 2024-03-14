@@ -488,7 +488,6 @@ impl core::fmt::Display for TorqueSpeedControl1Message {
 // Ambient Conditions
 //
 
-// TODO: Not tested
 pub struct AmbientConditionsMessage {
     /// Barometric pressure.
     pub barometric_pressure: Option<u8>,
@@ -732,7 +731,6 @@ impl core::fmt::Display for FuelEconomyMessage {
 // Engine Fluid Level/Pressure 1
 //
 
-// TODO: Not tested
 pub struct EngineFluidLevelPressure1Message {
     /// Gage pressure of fuel in system as delivered from supply pump to the injection pump.
     pub fuel_delivery_pressure: Option<u8>,
@@ -1645,6 +1643,63 @@ impl core::fmt::Display for VehicleElectricalPowerMessage {
     }
 }
 
+//
+// Engine Fluid Level/Pressure 2
+//
+
+// TODO: Not tested
+pub struct EngineFluidLevelPressure2Message {
+    /// The gage pressure of the engine oil in the hydraulic accumulator that powers an
+    /// intensifier used for fuel injection.
+    pub injection_control_pressure: Option<u16>,
+    /// The gage pressure of fuel in the primary, or first, metering rail as
+    /// delivered from the supply pump to the injector metering inlet.
+    pub injector_metering_rail1_pressure: Option<u16>,
+    /// The gage pressure of fuel in the timing rail delivered from the supply pump
+    /// to the injector timing inlet.
+    pub injector_timing_rail1_pressure: Option<u16>,
+    /// The gage pressure of fuel in the metering rail #2 as delivered from the
+    /// supply pump to the injector metering inlet.
+    pub injector_metering_rail2_pressure: Option<u16>,
+}
+
+impl EngineFluidLevelPressure2Message {
+    pub fn from_pdu(pdu: &[u8]) -> Self {
+        Self {
+            injection_control_pressure: slots::pressure5::dec([pdu[0], pdu[1]]),
+            injector_metering_rail1_pressure: slots::pressure5::dec([pdu[2], pdu[3]]),
+            injector_timing_rail1_pressure: slots::pressure5::dec([pdu[4], pdu[5]]),
+            injector_metering_rail2_pressure: slots::pressure5::dec([pdu[6], pdu[7]]),
+        }
+    }
+
+    pub fn to_pdu(&self) -> [u8; 8] {
+        [
+            slots::pressure5::enc(self.injection_control_pressure)[0],
+            slots::pressure5::enc(self.injection_control_pressure)[1],
+            slots::pressure5::enc(self.injector_metering_rail1_pressure)[0],
+            slots::pressure5::enc(self.injector_metering_rail1_pressure)[1],
+            slots::pressure5::enc(self.injector_timing_rail1_pressure)[0],
+            slots::pressure5::enc(self.injector_timing_rail1_pressure)[1],
+            slots::pressure5::enc(self.injector_metering_rail2_pressure)[0],
+            slots::pressure5::enc(self.injector_metering_rail2_pressure)[1],
+        ]
+    }
+}
+
+impl core::fmt::Display for EngineFluidLevelPressure2Message {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "Injection control pressure: {} MPa; Injector metering rail 1 pressure: {} MPa; Injector timing rail 1 pressure: {} MPa; Injector metering rail 2 pressure: {} MPa",
+            self.injection_control_pressure.unwrap_or(0),
+            self.injector_metering_rail1_pressure.unwrap_or(0),
+            self.injector_timing_rail1_pressure.unwrap_or(0),
+            self.injector_metering_rail2_pressure.unwrap_or(0)
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1758,6 +1813,45 @@ mod tests {
     }
 
     #[test]
+    fn electronic_engine_controller_3_message_1() {
+        let engine_message = ElectronicEngineController3Message::from_pdu(&[
+            0xFF, 0x00, 0x00, 0xC0, 0x5D, 0x40, 0x00, 0x00,
+        ]);
+
+        assert_eq!(engine_message.nominal_friction_percent_torque, None);
+        assert_eq!(engine_message.engines_desired_operating_speed, Some(0));
+        assert_eq!(
+            engine_message.engines_desired_operating_speed_asymmetry_adjustment,
+            Some(192)
+        );
+    }
+
+    #[test]
+    fn electronic_engine_controller_3_message_2() {
+        let engine_message_encoded = ElectronicEngineController3Message {
+            nominal_friction_percent_torque: Some(50),
+            engines_desired_operating_speed: Some(3632),
+            engines_desired_operating_speed_asymmetry_adjustment: Some(23),
+        }
+        .to_pdu();
+        let engine_message_decoded =
+            ElectronicEngineController3Message::from_pdu(&engine_message_encoded);
+
+        assert_eq!(
+            engine_message_decoded.nominal_friction_percent_torque,
+            Some(50)
+        );
+        assert_eq!(
+            engine_message_decoded.engines_desired_operating_speed,
+            Some(3632)
+        );
+        assert_eq!(
+            engine_message_decoded.engines_desired_operating_speed_asymmetry_adjustment,
+            Some(23)
+        );
+    }
+
+    #[test]
     fn torque_speed_control_1_message_1() {
         let torque_speed_encoded = TorqueSpeedControl1Message {
             override_control_mode: OverrideControlMode::SpeedControl,
@@ -1816,6 +1910,61 @@ mod tests {
     }
 
     #[test]
+    fn ambient_conditions_message_1() {
+        let engine_temperature =
+            AmbientConditionsMessage::from_pdu(&[0xC0, 0xFF, 0xFF, 0xFF, 0xFF, 0x35, 0xFF, 0xFF]);
+
+        assert_eq!(engine_temperature.barometric_pressure, Some(96));
+        assert_eq!(engine_temperature.cab_interior_temperature, None);
+        assert_eq!(engine_temperature.ambient_air_temperature, None);
+        assert_eq!(engine_temperature.air_inlet_temperature, Some(13));
+        assert_eq!(engine_temperature.road_surface_temperature, None);
+    }
+
+    #[test]
+    fn engine_fluid_level_pressure_1_message_1() {
+        let engine_fluid_level_pressure = EngineFluidLevelPressure1Message::from_pdu(&[
+            0x1A, 0xFF, 0xFF, 0x01, 0xFF, 0xFF, 0x00, 0x00,
+        ]);
+
+        assert_eq!(
+            engine_fluid_level_pressure.fuel_delivery_pressure,
+            Some(104)
+        );
+        assert_eq!(
+            engine_fluid_level_pressure.extended_crankcase_blow_by_pressure,
+            None
+        );
+        assert_eq!(engine_fluid_level_pressure.engine_oil_level, None);
+        assert_eq!(engine_fluid_level_pressure.engine_oil_pressure, Some(4));
+        assert_eq!(engine_fluid_level_pressure.crankcase_pressure, None);
+        assert_eq!(engine_fluid_level_pressure.coolant_pressure, Some(0));
+        assert_eq!(engine_fluid_level_pressure.coolant_level, Some(0));
+    }
+
+    #[test]
+    fn fuel_consumption_message_1() {
+        let fuel_consumption =
+            FuelConsumptionMessage::from_pdu(&[0xFA, 0xD8, 0x02, 0x00, 0xFA, 0xD8, 0x02, 0x00]);
+
+        assert_eq!(fuel_consumption.trip_fuel, Some(93309));
+        assert_eq!(fuel_consumption.total_fuel_used, Some(93309));
+    }
+
+    #[test]
+    fn fuel_consumption_message_2() {
+        let fuel_consumption_encoded = FuelConsumptionMessage {
+            trip_fuel: Some(1234),
+            total_fuel_used: Some(56),
+        }
+        .to_pdu();
+        let fuel_consumption_decoded = FuelConsumptionMessage::from_pdu(&fuel_consumption_encoded);
+
+        assert_eq!(fuel_consumption_decoded.trip_fuel, Some(1234));
+        assert_eq!(fuel_consumption_decoded.total_fuel_used, Some(56));
+    }
+
+    #[test]
     fn fan_drive_message_1() {
         let fan_drive_encoded = FanDriveMessage {
             estimated_percent_fan_speed: Some(50),
@@ -1848,6 +1997,49 @@ mod tests {
         assert_eq!(fan_drive_decoded.estimated_percent_fan_speed, None);
         assert_eq!(fan_drive_decoded.fan_drive_state, None);
         assert_eq!(fan_drive_decoded.fan_speed, None);
+    }
+
+    #[test]
+    fn engine_temperature_1_message_1() {
+        let engine_temperature =
+            EngineTemperature1Message::from_pdu(&[0x42, 0x3B, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]);
+
+        assert_eq!(engine_temperature.engine_coolant_temperature, Some(26));
+        assert_eq!(engine_temperature.fuel_temperature, Some(19));
+        assert_eq!(engine_temperature.engine_oil_temperature, None);
+        assert_eq!(engine_temperature.turbo_oil_temperature, None);
+        assert_eq!(engine_temperature.engine_intercooler_temperature, None);
+        assert_eq!(
+            engine_temperature.engine_intercooler_thermostat_opening,
+            None
+        );
+    }
+
+    #[test]
+    fn inlet_exhaust_conditions_1_message_1() {
+        let inlet_exhaust_conditions = InletExhaustConditions1Message::from_pdu(&[
+            0xD4, 0x30, 0x3E, 0x32, 0x41, 0x0B, 0x0A, 0x00,
+        ]);
+
+        assert_eq!(
+            inlet_exhaust_conditions.particulate_trap_inlet_pressure,
+            None
+        );
+        assert_eq!(inlet_exhaust_conditions.boost_pressure, Some(96));
+        assert_eq!(
+            inlet_exhaust_conditions.intake_manifold_temperature,
+            Some(22)
+        );
+        assert_eq!(inlet_exhaust_conditions.air_inlet_pressure, Some(100));
+        assert_eq!(
+            inlet_exhaust_conditions.air_filter_differential_pressure,
+            Some(3)
+        );
+        assert_eq!(inlet_exhaust_conditions.exhaust_gas_temperature, Some(-192));
+        assert_eq!(
+            inlet_exhaust_conditions.coolant_filter_differential_pressure,
+            None
+        );
     }
 
     #[test]
@@ -2012,6 +2204,36 @@ mod tests {
         assert_eq!(
             electrical_power_message_decoded.battery_potential,
             Some(947)
+        );
+    }
+
+    #[test]
+    fn engine_fluid_level_pressure_2_message_1() {
+        let engine_fluid_message_encoded = EngineFluidLevelPressure2Message {
+            injection_control_pressure: Some(6),
+            injector_metering_rail1_pressure: Some(81),
+            injector_timing_rail1_pressure: None,
+            injector_metering_rail2_pressure: Some(241),
+        }
+        .to_pdu();
+        let engine_fluid_message_decoded =
+            EngineFluidLevelPressure2Message::from_pdu(&engine_fluid_message_encoded);
+
+        assert_eq!(
+            engine_fluid_message_decoded.injection_control_pressure,
+            Some(6)
+        );
+        assert_eq!(
+            engine_fluid_message_decoded.injector_metering_rail1_pressure,
+            Some(81)
+        );
+        assert_eq!(
+            engine_fluid_message_decoded.injector_timing_rail1_pressure,
+            None
+        );
+        assert_eq!(
+            engine_fluid_message_decoded.injector_metering_rail2_pressure,
+            Some(241)
         );
     }
 }

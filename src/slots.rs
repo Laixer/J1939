@@ -359,6 +359,29 @@ pub mod pressure4 {
     }
 }
 
+pub mod pressure5 {
+    const RESOLUTION: super::Param = super::Param {
+        scale: 1.0 / 256.0,
+        offset: 0.0,
+        limit_lower: 0.0,
+        limit_upper: 251.0,
+    };
+
+    pub fn dec(value: [u8; 2]) -> Option<u16> {
+        if value == [crate::PDU_NOT_AVAILABLE; 2] {
+            return None;
+        }
+
+        Some(RESOLUTION.dec(u16::from_le_bytes(value) as f32) as u16)
+    }
+
+    pub fn enc(value: Option<u16>) -> [u8; 2] {
+        value.map_or([crate::PDU_NOT_AVAILABLE; 2], |v| {
+            (RESOLUTION.enc(v as f32) as u16).to_le_bytes()
+        })
+    }
+}
+
 pub mod liquid_fuel_usage {
     const RESOLUTION: super::Param = super::Param {
         scale: 0.5,

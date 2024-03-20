@@ -17,10 +17,10 @@ pub fn request_from_pdu(pdu: &[u8]) -> PGN {
 }
 
 /// Create address claimed frame.
-pub fn address_claimed(sa: u8, name: Name) -> Frame {
+pub fn address_claimed(sa: u8, name: &Name) -> Frame {
     let id = IdBuilder::from_pgn(PGN::AddressClaimed)
         .sa(sa)
-        .da(0xff)
+        .da(PDU_NOT_AVAILABLE)
         .build();
 
     FrameBuilder::new(id)
@@ -33,7 +33,7 @@ pub fn acknowledgement(sa: u8, pgn: PGN) -> Frame {
     let pgn_bytes = pgn.to_le_bytes();
 
     let id = IdBuilder::from_pgn(PGN::AcknowledgmentMessage)
-        .da(0xff)
+        .da(PDU_NOT_AVAILABLE)
         .sa(sa)
         .build();
 

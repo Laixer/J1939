@@ -27,6 +27,9 @@ pub const PDU_NOT_AVAILABLE: u8 = 0xff;
 /// ASCII delimiter for variable length fields.
 pub const FIELD_DELIMITER: u8 = b'*';
 
+/// 29-bit identifier mask.
+pub const ID_BIT_MASK: u32 = 0x1fffffff;
+
 /// Protocol Data Unit Format.
 ///
 /// There are two different PDU formats. PDU1 format is used for sending messages with a specific
@@ -44,9 +47,11 @@ pub struct Id(u32);
 
 /// Frame ID
 impl Id {
-    /// Construct new Frame ID.
+    /// Construct new Frame ID from raw integer.
+    ///
+    /// The ID is masked to 29 bits to ensure that the ID is within the valid range.
     pub const fn new(id: u32) -> Self {
-        Self(id & 0x1fffffff)
+        Self(id & ID_BIT_MASK)
     }
 
     /// Return ID as raw integer.
@@ -66,28 +71,28 @@ impl Id {
         (self.0 >> 26).try_into().unwrap()
     }
 
-    /// Data page
-    pub fn dp(&self) -> u8 {
+    /// Data page (DP)
+    pub fn data_page(&self) -> u8 {
         ((self.0 >> 24) & 0x1).try_into().unwrap()
     }
 
-    /// Parameter Group Number
+    /// Parameter Group Number (PGN)
     pub fn pgn(&self) -> PGN {
         self.pgn_raw().into()
     }
 
     /// Parameter Group Number
     pub fn pgn_raw(&self) -> u32 {
-        match self.pf() {
+        match self.pdu_format() {
             PDUFormat::PDU1(_) => (self.0 >> 8) & 0xff00,
             PDUFormat::PDU2(_) => (self.0 >> 8) & 0xffff,
         }
     }
 
-    /// PDU Format
-    pub fn pf(&self) -> PDUFormat {
+    /// PDU Format (PF)
+    pub fn pdu_format(&self) -> PDUFormat {
         let format: u8 = ((self.0 >> 16) & 0xff).try_into().unwrap();
-        if format < 240 {
+        if format & 0xf0 < 0xf0 {
             PDUFormat::PDU1(format)
         } else {
             PDUFormat::PDU2(format)
@@ -96,37 +101,39 @@ impl Id {
 
     /// Test if the frame is a broadcast frame
     pub fn is_broadcast(&self) -> bool {
-        matches!(self.pf(), PDUFormat::PDU2(_))
+        match self.pdu_format() {
+            PDUFormat::PDU1(_) => self.destination_address() == Some(0xff),
+            PDUFormat::PDU2(_) => true,
+        }
     }
 
-    /// Frame destination address
+    /// Frame Destination Address (DA)
     ///
     /// The destination address is only availale on PDU1 frames.
     pub fn destination_address(&self) -> Option<u8> {
-        match self.pf() {
-            PDUFormat::PDU1(_) => Some(self.ps()),
+        match self.pdu_format() {
+            PDUFormat::PDU1(_) => Some(self.pdu_specific()),
             _ => None,
         }
     }
 
-    /// Frame group extension
+    /// Frame Group Extension (GE)
     ///
     /// The group extension is only availale on PDU2 frames.
     pub fn group_extension(&self) -> Option<u8> {
-        match self.pf() {
-            PDUFormat::PDU2(_) => Some(self.ps()),
+        match self.pdu_format() {
+            PDUFormat::PDU2(_) => Some(self.pdu_specific()),
             _ => None,
         }
     }
 
-    /// PDU Specific
-    pub fn ps(&self) -> u8 {
+    /// PDU Specific (PS)
+    pub fn pdu_specific(&self) -> u8 {
         ((self.0 >> 8) & 0xff).try_into().unwrap()
     }
 
-    // TODO: Return the source address enum.
-    /// Device source address
-    pub fn sa(&self) -> u8 {
+    /// Device Source Address (SA)
+    pub fn source_address(&self) -> u8 {
         (self.0 & 0xff).try_into().unwrap()
     }
 }
@@ -201,7 +208,7 @@ impl IdBuilder {
     pub fn build(self) -> Id {
         let mut id = (self.priority as u32) << 26 | self.pgn << 8 | self.sa as u32;
 
-        if let PDUFormat::PDU1(_) = Id::new(id).pf() {
+        if let PDUFormat::PDU1(_) = Id::new(id).pdu_format() {
             id |= (self.da as u32) << 8;
         }
 
@@ -343,47 +350,64 @@ mod tests {
 
         assert_eq!(id.as_raw(), 0x18EAFF00);
         assert_eq!(id.priority(), 6);
-        assert_eq!(id.dp(), 0);
+        assert_eq!(id.data_page(), 0);
         assert_eq!(id.pgn_raw(), 59904);
         assert_eq!(id.pgn(), PGN::Request);
-        assert_eq!(id.pf(), PDUFormat::PDU1(234));
-        assert!(!id.is_broadcast());
-        assert_eq!(id.ps(), 255);
+        assert_eq!(id.pdu_format(), PDUFormat::PDU1(234));
+        assert!(id.is_broadcast());
+        assert_eq!(id.pdu_specific(), 255);
         assert_eq!(id.destination_address(), Some(255));
         assert_eq!(id.group_extension(), None);
-        assert_eq!(id.sa(), 0);
+        assert_eq!(id.source_address(), 0);
     }
 
     #[test]
     fn id_decode_2() {
-        let id = Id::new(0xCFE6CEE);
+        let id = Id::new(0x18EA687A);
 
-        assert_eq!(id.as_raw(), 0xCFE6CEE);
-        assert_eq!(id.priority(), 3);
-        assert_eq!(id.dp(), 0);
-        assert_eq!(id.pgn_raw(), 65132);
-        assert_eq!(id.pf(), PDUFormat::PDU2(254));
-        assert!(id.is_broadcast());
-        assert_eq!(id.ps(), 108);
-        assert_eq!(id.destination_address(), None);
-        assert_eq!(id.group_extension(), Some(108));
-        assert_eq!(id.sa(), 238);
+        assert_eq!(id.as_raw(), 0x18EA687A);
+        assert_eq!(id.priority(), 6);
+        assert_eq!(id.data_page(), 0);
+        assert_eq!(id.pgn_raw(), 59904);
+        assert_eq!(id.pgn(), PGN::Request);
+        assert_eq!(id.pdu_format(), PDUFormat::PDU1(234));
+        assert!(!id.is_broadcast());
+        assert_eq!(id.pdu_specific(), 104);
+        assert_eq!(id.destination_address(), Some(0x68));
+        assert_eq!(id.group_extension(), None);
+        assert_eq!(id.source_address(), 0x7A);
     }
 
     #[test]
     fn id_decode_3() {
+        let id = Id::new(0xCFE6CEE);
+
+        assert_eq!(id.as_raw(), 0xCFE6CEE);
+        assert_eq!(id.priority(), 3);
+        assert_eq!(id.data_page(), 0);
+        assert_eq!(id.pgn_raw(), 65132);
+        assert_eq!(id.pdu_format(), PDUFormat::PDU2(254));
+        assert!(id.is_broadcast());
+        assert_eq!(id.pdu_specific(), 108);
+        assert_eq!(id.destination_address(), None);
+        assert_eq!(id.group_extension(), Some(108));
+        assert_eq!(id.source_address(), 238);
+    }
+
+    #[test]
+    fn id_decode_4() {
         let id = Id::new(0xDFE6CEE);
 
         assert_eq!(id.as_raw(), 0xDFE6CEE);
         assert_eq!(id.priority(), 3);
-        assert_eq!(id.dp(), 1);
+        assert_eq!(id.data_page(), 1);
         assert_eq!(id.pgn_raw(), 65132);
-        assert_eq!(id.pf(), PDUFormat::PDU2(254));
+        assert_eq!(id.pdu_format(), PDUFormat::PDU2(254));
         assert!(id.is_broadcast());
-        assert_eq!(id.ps(), 108);
+        assert_eq!(id.pdu_specific(), 108);
         assert_eq!(id.destination_address(), None);
         assert_eq!(id.group_extension(), Some(108));
-        assert_eq!(id.sa(), 238);
+        assert_eq!(id.source_address(), 238);
     }
 
     #[test]

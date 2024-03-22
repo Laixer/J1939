@@ -35,12 +35,12 @@ fn main() {
     println!(" Hex: 0x{:X?}", id.priority());
     println!(" Dec: {}", id.priority());
     println!(" Bin: {:03b}", id.priority());
-    println!("Data Page (DP): {}", id.dp());
+    println!("Data Page (DP): {}", id.data_page());
     println!("Parameter Group Number (PGN): {:?}", id.pgn());
     println!(" Hex: 0x{:X?}", id.pgn_raw());
     println!(" Dec: {}", id.pgn_raw());
     println!(" Bin: {:024b}", id.pgn_raw());
-    println!("PDU Type: {:?}", id.pf());
+    println!("PDU Format: {:?}", id.pdu_format());
     println!("Broadcast: {}", id.is_broadcast());
 
     if let Some(ge) = id.group_extension() {
@@ -58,7 +58,7 @@ fn main() {
     }
 
     println!("Source Address (SA)");
-    println!(" Hex: 0x{:X?}", id.sa());
-    println!(" Dec: {}", id.sa());
-    println!(" Bin: {:08b}", id.sa());
+    println!(" Hex: 0x{:X?}", id.source_address());
+    println!(" Dec: {}", id.source_address());
+    println!(" Bin: {:08b}", id.source_address());
 }

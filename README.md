@@ -10,13 +10,13 @@ A Rust crate for the SAE J1939 automotive protocol.
 Build a J1939 frame with PGN '_address claimed_'.
 
 ```rust
-let id = j1939:IdBuilder::from_pgn(j1939::PGN::AddressClaimed)
+let id = j1939::IdBuilder::from_pgn(j1939::PGN::AddressClaimed)
     .priority(3)
     .sa(0x11)
     .da(0xff)
     .build();
 
-let frame = j1939:FrameBuilder::new(id)
+let frame = j1939::FrameBuilder::new(id)
     .copy_from_slice(&name.to_bytes()[..])
     .build();
 ```

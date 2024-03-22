@@ -17,5 +17,3 @@ keywords = [
 ]
 license = "GPL-3.0"
 
-[features]
-can = []

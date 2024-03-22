@@ -14,9 +14,6 @@ pub use name::*;
 pub use pgn::*;
 pub use sa::*;
 
-#[cfg(feature = "can")]
-pub mod can;
-
 /// Maximum number of bytes in a PGN.
 pub const PGN_MAX_LENGTH: usize = 3;
 /// Maximum number of bytes in a PDU.

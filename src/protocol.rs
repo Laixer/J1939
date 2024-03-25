@@ -1,10 +1,10 @@
 use crate::{Frame, FrameBuilder, IdBuilder, Name, PDU_NOT_AVAILABLE, PGN};
 
 /// Create PGN request frame.
-pub fn request(da: u8, pgn: PGN) -> Frame {
+pub fn request(da: u8, sa: u8, pgn: PGN) -> Frame {
     let pgn_bytes = pgn.to_le_bytes();
 
-    let id = IdBuilder::from_pgn(PGN::Request).da(da).build();
+    let id = IdBuilder::from_pgn(PGN::Request).sa(sa).da(da).build();
 
     FrameBuilder::new(id)
         .copy_from_slice(&[pgn_bytes[0], pgn_bytes[1], pgn_bytes[2]])

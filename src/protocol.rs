@@ -33,8 +33,8 @@ pub fn acknowledgement(sa: u8, pgn: PGN) -> Frame {
     let pgn_bytes = pgn.to_le_bytes();
 
     let id = IdBuilder::from_pgn(PGN::AcknowledgmentMessage)
-        .da(PDU_NOT_AVAILABLE)
         .sa(sa)
+        .da(PDU_NOT_AVAILABLE)
         .build();
 
     FrameBuilder::new(id)

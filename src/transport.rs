@@ -1,4 +1,4 @@
-use crate::{Frame, FrameBuilder, IdBuilder, PGN};
+use crate::{Frame, FrameBuilder, IdBuilder, PDU_NOT_AVAILABLE, PGN};
 
 pub enum ConnectionManagement {
     RequestToSend = 0x10,
@@ -17,7 +17,8 @@ pub struct BroadcastTransport {
     sa: u8,
     pgn: PGN,
     data: [u8; 1785],
-    length: usize,
+    data_length: usize,
+    tail: usize,
     state: BroadcastTransportState,
 }
 
@@ -26,38 +27,40 @@ impl BroadcastTransport {
         Self {
             sa,
             pgn,
-            data: [0xFF; 1785],
-            length: 0,
+            data: [PDU_NOT_AVAILABLE; 1785],
+            data_length: 0,
+            tail: 0,
             state: BroadcastTransportState::ConnectionManagement,
         }
     }
 
     pub fn with_data(mut self, data: &[u8]) -> Self {
         self.data[..data.len()].copy_from_slice(data);
-        self.length = data.len();
+        self.data_length = data.len();
+        self.tail = data.len();
         self
     }
 
     /// Returns a slice of the transport data.
     pub fn data(&self) -> &[u8] {
-        &self.data[..self.length]
+        &self.data[..self.tail]
     }
 
     /// Returns the length of the transport data.
     #[inline]
     pub fn len(&self) -> usize {
-        self.length
+        self.tail
     }
 
     /// Returns `true` if the transport data is empty.
     #[inline]
     pub fn is_empty(&self) -> bool {
-        self.length == 0
+        self.tail == 0
     }
 
     pub fn packet_count(&self) -> usize {
-        let quotient = self.length / 7;
-        let remainder = self.length % 7;
+        let quotient = self.data_length / 7;
+        let remainder = self.data_length % 7;
 
         if remainder > 0 {
             quotient + 1
@@ -69,7 +72,7 @@ impl BroadcastTransport {
     pub fn next_frame(&mut self) -> Frame {
         match self.state {
             BroadcastTransportState::ConnectionManagement => {
-                let data_length = (self.length as u16).to_le_bytes();
+                let data_length = (self.data_length as u16).to_le_bytes();
                 let packets = self.packet_count() as u8;
                 let byte_array = self.pgn.to_le_bytes();
 
@@ -136,7 +139,7 @@ impl BroadcastTransport {
 
             if data[0] == ConnectionManagement::BroadcastAnnounceMessage as u8 {
                 self.pgn = PGN::from_le_bytes([data[5], data[6], data[7]]);
-                self.length = data_length;
+                self.data_length = data_length;
                 self.state = BroadcastTransportState::DataTransfer(0);
             }
         } else if pgn == PGN::TransportProtocolDataTransfer {
@@ -147,6 +150,7 @@ impl BroadcastTransport {
             let start = (sequence as usize - 1) * 7;
             let end = start + data_chunk.len();
 
+            self.tail = self.data_length.min(end);
             self.data[start..end].copy_from_slice(data_chunk);
         }
     }
@@ -154,7 +158,7 @@ impl BroadcastTransport {
 
 impl AsRef<[u8]> for BroadcastTransport {
     fn as_ref(&self) -> &[u8] {
-        &self.data[..self.length]
+        &self.data[..self.tail]
     }
 }
 
@@ -208,7 +212,7 @@ mod tests {
                 .copy_from_slice(&frame1)
                 .build(),
         );
-        assert_eq!(transport.len(), 9);
+        assert_eq!(transport.len(), 0);
         assert_eq!(transport.packet_count(), 2);
 
         transport.from_frame(
@@ -221,6 +225,7 @@ mod tests {
                 .copy_from_slice(&frame3)
                 .build(),
         );
+        assert_eq!(transport.len(), 9);
         assert_eq!(
             transport.data(),
             &[0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09]

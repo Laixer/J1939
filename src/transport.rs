@@ -1,5 +1,10 @@
 use crate::{Frame, FrameBuilder, IdBuilder, PDU_NOT_AVAILABLE, PGN};
 
+/// Maximum number of data bytes
+pub const DATA_MAX_LENGTH: usize = 1785;
+/// Maximum number of data bytes per frame
+pub const DATA_FRAME_SIZE: usize = 7;
+
 pub enum ConnectionManagement {
     RequestToSend = 0x10,
     ClearToSend = 0x11,
@@ -16,7 +21,7 @@ pub enum BroadcastTransportState {
 pub struct BroadcastTransport {
     sa: u8,
     pgn: PGN,
-    data: [u8; 1785],
+    data: [u8; DATA_MAX_LENGTH],
     data_length: usize,
     tail: usize,
     state: BroadcastTransportState,
@@ -27,7 +32,7 @@ impl BroadcastTransport {
         Self {
             sa,
             pgn,
-            data: [PDU_NOT_AVAILABLE; 1785],
+            data: [PDU_NOT_AVAILABLE; DATA_MAX_LENGTH],
             data_length: 0,
             tail: 0,
             state: BroadcastTransportState::ConnectionManagement,
@@ -59,8 +64,8 @@ impl BroadcastTransport {
     }
 
     pub fn packet_count(&self) -> usize {
-        let quotient = self.data_length / 7;
-        let remainder = self.data_length % 7;
+        let quotient = self.data_length / DATA_FRAME_SIZE;
+        let remainder = self.data_length % DATA_FRAME_SIZE;
 
         if remainder > 0 {
             quotient + 1
@@ -88,7 +93,7 @@ impl BroadcastTransport {
                     data_length[0],
                     data_length[1],
                     packets,
-                    0xff,
+                    PDU_NOT_AVAILABLE,
                     byte_array[0],
                     byte_array[1],
                     byte_array[2],
@@ -114,9 +119,10 @@ impl BroadcastTransport {
                 let payload = frame_builder.as_mut();
                 payload[0] = sequence;
 
-                let data_chunk = &self.data[packet as usize * 7..(packet as usize + 1) * 7];
+                let data_chunk = &self.data
+                    [packet as usize * DATA_FRAME_SIZE..(packet as usize + 1) * DATA_FRAME_SIZE];
 
-                if data_chunk.len() == 7 {
+                if data_chunk.len() == DATA_FRAME_SIZE {
                     payload[1..8].copy_from_slice(data_chunk);
                 } else {
                     payload[1..(data_chunk.len() + 1)].copy_from_slice(data_chunk);
@@ -147,7 +153,7 @@ impl BroadcastTransport {
             let sequence = data[0];
             let data_chunk = &data[1..];
 
-            let start = (sequence as usize - 1) * 7;
+            let start = (sequence as usize - 1) * DATA_FRAME_SIZE;
             let end = start + data_chunk.len();
 
             self.tail = self.data_length.min(end);

@@ -168,9 +168,9 @@ pub struct IdBuilder {
     /// Parameter group number.
     pgn: u32,
     /// Source address.
-    sa: u8,
+    source_address: u8,
     /// Destination address.
-    da: u8,
+    destination_address: u8,
 }
 
 impl IdBuilder {
@@ -179,8 +179,8 @@ impl IdBuilder {
         Self {
             priority: 6,
             pgn: pgn.into(),
-            sa: 0,
-            da: 0,
+            source_address: 0,
+            destination_address: 0,
         }
     }
 
@@ -191,26 +191,28 @@ impl IdBuilder {
         self
     }
 
+    // TODO: Rename to 'source_address'
     /// Set the sender address.
     #[inline]
     pub fn sa(mut self, address: u8) -> Self {
-        self.sa = address;
+        self.source_address = address;
         self
     }
 
+    // TODO: Rename to 'destination_address'
     /// Set the destination address.
     #[inline]
     pub fn da(mut self, address: u8) -> Self {
-        self.da = address;
+        self.destination_address = address;
         self
     }
 
     /// Build frame ID.
     pub fn build(self) -> Id {
-        let mut id = (self.priority as u32) << 26 | self.pgn << 8 | self.sa as u32;
+        let mut id = (self.priority as u32) << 26 | self.pgn << 8 | self.source_address as u32;
 
         if let PDUFormat::PDU1(_) = Id::new(id).pdu_format() {
-            id |= (self.da as u32) << 8;
+            id |= (self.destination_address as u32) << 8;
         }
 
         Id::new(id)
@@ -238,25 +240,34 @@ impl Frame {
         }
     }
 
+    /// Construct new frame from raw ID and PDU.
+    pub fn from_raw(id: u32, pdu: [u8; PDU_MAX_LENGTH]) -> Self {
+        Self {
+            id: Id::new(id),
+            pdu,
+            pdu_length: PDU_MAX_LENGTH,
+        }
+    }
+
     /// Get frame ID.
     #[inline]
     pub fn id(&self) -> &Id {
         &self.id
     }
 
-    /// Get PDU reference.
+    /// Returns a slice of the PDU data.
     #[inline]
     pub fn pdu(&self) -> &[u8] {
         &self.pdu[..self.pdu_length]
     }
 
-    /// PDU data length.
+    /// Returns the length of the PDU data.
     #[inline]
     pub fn len(&self) -> usize {
         self.pdu_length
     }
 
-    /// Check if PDU data is empty.
+    /// Returns `true` if PDU data is empty.
     #[inline]
     pub fn is_empty(&self) -> bool {
         self.pdu_length == 0

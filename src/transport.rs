@@ -38,12 +38,21 @@ impl BroadcastTransport {
         self
     }
 
+    /// Returns a slice of the transport data.
     pub fn data(&self) -> &[u8] {
         &self.data[..self.length]
     }
 
-    pub fn length(&self) -> usize {
+    /// Returns the length of the transport data.
+    #[inline]
+    pub fn len(&self) -> usize {
         self.length
+    }
+
+    /// Returns `true` if the transport data is empty.
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.length == 0
     }
 
     pub fn packet_count(&self) -> usize {
@@ -143,6 +152,12 @@ impl BroadcastTransport {
     }
 }
 
+impl AsRef<[u8]> for BroadcastTransport {
+    fn as_ref(&self) -> &[u8] {
+        &self.data[..self.length]
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::Id;
@@ -193,7 +208,7 @@ mod tests {
                 .copy_from_slice(&frame1)
                 .build(),
         );
-        assert_eq!(transport.length(), 9);
+        assert_eq!(transport.len(), 9);
         assert_eq!(transport.packet_count(), 2);
 
         transport.from_frame(

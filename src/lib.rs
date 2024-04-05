@@ -9,6 +9,7 @@ pub mod protocol;
 mod sa;
 mod slots;
 pub mod spn;
+pub mod transport;
 
 pub use name::*;
 pub use pgn::*;

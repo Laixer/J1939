@@ -38,6 +38,14 @@ impl BroadcastTransport {
         self
     }
 
+    pub fn data(&self) -> &[u8] {
+        &self.data[..self.length]
+    }
+
+    pub fn length(&self) -> usize {
+        self.length
+    }
+
     pub fn packet_count(&self) -> usize {
         let quotient = self.length / 7;
         let remainder = self.length % 7;
@@ -110,10 +118,35 @@ impl BroadcastTransport {
             }
         }
     }
+
+    pub fn from_frame(&mut self, frame: &Frame) {
+        let pgn = frame.id().pgn();
+        if pgn == PGN::TransportProtocolConnectionManagement {
+            let data = frame.as_ref();
+            let data_length = u16::from_le_bytes([data[1], data[2]]) as usize;
+
+            if data[0] == ConnectionManagement::BroadcastAnnounceMessage as u8 {
+                self.pgn = PGN::from_le_bytes([data[5], data[6], data[7]]);
+                self.length = data_length;
+                self.state = BroadcastTransportState::DataTransfer(0);
+            }
+        } else if pgn == PGN::TransportProtocolDataTransfer {
+            let data = frame.as_ref();
+            let sequence = data[0];
+            let data_chunk = &data[1..];
+
+            let start = (sequence as usize - 1) * 7;
+            let end = start + data_chunk.len();
+
+            self.data[start..end].copy_from_slice(data_chunk);
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::Id;
+
     use super::*;
 
     #[test]
@@ -144,6 +177,38 @@ mod tests {
         assert_eq!(
             frame.as_ref(),
             &[0x02, 0x08, 0x09, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
+        );
+    }
+
+    #[test]
+    fn test_broadcast_transport2() {
+        let frame1 = [0x20, 0x09, 0x00, 0x02, 0xFF, 0x00, 0xEE, 0x00];
+        let frame2 = [0x01, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07];
+        let frame3 = [0x02, 0x08, 0x09, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF];
+
+        let mut transport = BroadcastTransport::new(0x01, PGN::AddressClaimed);
+
+        transport.from_frame(
+            &FrameBuilder::new(Id::new(0x1CECFF01))
+                .copy_from_slice(&frame1)
+                .build(),
+        );
+        assert_eq!(transport.length(), 9);
+        assert_eq!(transport.packet_count(), 2);
+
+        transport.from_frame(
+            &FrameBuilder::new(Id::new(0x1CEBFF01))
+                .copy_from_slice(&frame2)
+                .build(),
+        );
+        transport.from_frame(
+            &FrameBuilder::new(Id::new(0x1CEBFF01))
+                .copy_from_slice(&frame3)
+                .build(),
+        );
+        assert_eq!(
+            transport.data(),
+            &[0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09]
         );
     }
 }

@@ -136,7 +136,7 @@ impl NameBuilder {
     /// Set the vehicle system.
     #[inline]
     pub fn vehicle_system(mut self, vehicle_system: u8) -> Self {
-        self.vehicle_system = vehicle_system & 0x7f;
+        self.vehicle_system = vehicle_system;
         self
     }
 
@@ -261,6 +261,6 @@ mod tests {
 
         let bytes = name.to_bytes();
 
-        assert_eq!(bytes, [0x01, 0x00, 0xE0, 0xE2, 0x09, 0x3A, 0x09, 0x00]);
+        assert_eq!(bytes, [0x01, 0x00, 0xE0, 0xE2, 0x09, 0x3A, 0x12, 0x00]);
     }
 }

@@ -32,7 +32,7 @@ impl Name {
         bytes[3] = (self.manufacturer_code >> 3) as u8;
         bytes[4] = (self.function_instance << 3) | self.ecu_instance;
         bytes[5] = self.function;
-        bytes[6] = self.vehicle_system;
+        bytes[6] = self.vehicle_system << 1;
         bytes[7] = self.vehicle_system_instance
             | self.industry_group << 4
             | ((self.arbitrary_address as u8) << 7);
@@ -47,7 +47,7 @@ impl Name {
         let function_instance = bytes[4] >> 3;
         let ecu_instance = bytes[4] & 0x7;
         let function = bytes[5];
-        let vehicle_system = bytes[6] & 0x7f;
+        let vehicle_system = bytes[6] >> 1;
         let vehicle_system_instance = bytes[7] & 0xf;
         let industry_group = (bytes[7] >> 4) & 0x7;
         let arbitrary_address = bytes[7] >> 7;
@@ -136,7 +136,7 @@ impl NameBuilder {
     /// Set the vehicle system.
     #[inline]
     pub fn vehicle_system(mut self, vehicle_system: u8) -> Self {
-        self.vehicle_system = vehicle_system & 0x7f;
+        self.vehicle_system = vehicle_system;
         self
     }
 
@@ -224,12 +224,12 @@ mod tests {
 
         let bytes = name.to_bytes();
 
-        assert_eq!(bytes, [0x09, 0x03, 0x4B, 0x24, 0x11, 0x05, 0x06, 0x85]);
+        assert_eq!(bytes, [0x09, 0x03, 0x4B, 0x24, 0x11, 0x05, 0x0C, 0x85]);
     }
 
     #[test]
     fn test_from_bytes() {
-        let bytes = [0x19, 0xA4, 0x49, 0x24, 0x11, 0x05, 0x06, 0x85];
+        let bytes = [0x19, 0xA4, 0x49, 0x24, 0x11, 0x05, 0x0C, 0x85];
 
         let name = Name::from_bytes(bytes);
 
@@ -261,6 +261,6 @@ mod tests {
 
         let bytes = name.to_bytes();
 
-        assert_eq!(bytes, [0x01, 0x00, 0xE0, 0xE2, 0x09, 0x3A, 0x09, 0x00]);
+        assert_eq!(bytes, [0x01, 0x00, 0xE0, 0xE2, 0x09, 0x3A, 0x12, 0x00]);
     }
 }

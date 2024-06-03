@@ -73,16 +73,22 @@ impl Id {
     }
 
     /// Data page (DP)
+    ///
+    /// Returns the data page bit of the frame ID.
     pub fn data_page(&self) -> u8 {
         ((self.0 >> 24) & 0x1).try_into().unwrap()
     }
 
     /// Parameter Group Number (PGN)
+    ///
+    /// Returns the parameter group number of the frame ID.
     pub fn pgn(&self) -> PGN {
         self.pgn_raw().into()
     }
 
     /// Parameter Group Number
+    ///
+    /// Returns the raw parameter group number of the frame ID.
     pub fn pgn_raw(&self) -> u32 {
         match self.pdu_format() {
             PDUFormat::PDU1(_) => (self.0 >> 8) & 0xff00,
@@ -91,6 +97,8 @@ impl Id {
     }
 
     /// PDU Format (PF)
+    ///
+    /// Returns the PDU format of the frame ID.
     pub fn pdu_format(&self) -> PDUFormat {
         let format: u8 = ((self.0 >> 16) & 0xff).try_into().unwrap();
         if format & 0xf0 < 0xf0 {
@@ -101,6 +109,8 @@ impl Id {
     }
 
     /// Test if the frame is a broadcast frame
+    ///
+    /// Returns true if the frame is a broadcast frame, false otherwise.
     pub fn is_broadcast(&self) -> bool {
         match self.pdu_format() {
             PDUFormat::PDU1(_) => self.destination_address() == Some(0xff),
@@ -110,7 +120,9 @@ impl Id {
 
     /// Frame Destination Address (DA)
     ///
-    /// The destination address is only availale on PDU1 frames.
+    /// Returns the destination address of the frame ID.
+    ///
+    /// The destination address is only available on PDU1 frames.
     pub fn destination_address(&self) -> Option<u8> {
         match self.pdu_format() {
             PDUFormat::PDU1(_) => Some(self.pdu_specific()),
@@ -120,7 +132,9 @@ impl Id {
 
     /// Frame Group Extension (GE)
     ///
-    /// The group extension is only availale on PDU2 frames.
+    /// Returns the group extension of the frame ID.
+    ///
+    /// The group extension is only available on PDU2 frames.
     pub fn group_extension(&self) -> Option<u8> {
         match self.pdu_format() {
             PDUFormat::PDU2(_) => Some(self.pdu_specific()),
@@ -129,11 +143,15 @@ impl Id {
     }
 
     /// PDU Specific (PS)
+    ///
+    /// Returns the PDU specific value of the frame ID.
     pub fn pdu_specific(&self) -> u8 {
         ((self.0 >> 8) & 0xff).try_into().unwrap()
     }
 
     /// Device Source Address (SA)
+    ///
+    /// Returns the source address of the frame ID.
     pub fn source_address(&self) -> u8 {
         (self.0 & 0xff).try_into().unwrap()
     }
@@ -231,7 +249,16 @@ pub struct Frame {
 }
 
 impl Frame {
-    /// Construct new frame.
+    /// Construct a new frame.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - The ID of the frame.
+    /// * `pdu` - The Protocol Data Unit (PDU) of the frame.
+    ///
+    /// # Returns
+    ///
+    /// A new `Frame` instance.
     pub fn new(id: Id, pdu: [u8; PDU_MAX_LENGTH]) -> Self {
         Self {
             id,
@@ -240,7 +267,16 @@ impl Frame {
         }
     }
 
-    /// Construct new frame from raw ID and PDU.
+    /// Construct a new frame from raw ID and PDU.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - The raw ID of the frame.
+    /// * `pdu` - The Protocol Data Unit (PDU) of the frame.
+    ///
+    /// # Returns
+    ///
+    /// A new `Frame` instance.
     pub fn from_raw(id: u32, pdu: [u8; PDU_MAX_LENGTH]) -> Self {
         Self {
             id: Id::new(id),
@@ -249,25 +285,41 @@ impl Frame {
         }
     }
 
-    /// Get frame ID.
+    /// Get the ID of the frame.
+    ///
+    /// # Returns
+    ///
+    /// A reference to the `Id` of the frame.
     #[inline]
     pub fn id(&self) -> &Id {
         &self.id
     }
 
     /// Returns a slice of the PDU data.
+    ///
+    /// # Returns
+    ///
+    /// A slice of the PDU data.
     #[inline]
     pub fn pdu(&self) -> &[u8] {
         &self.pdu[..self.pdu_length]
     }
 
     /// Returns the length of the PDU data.
+    ///
+    /// # Returns
+    ///
+    /// The length of the PDU data.
     #[inline]
     pub fn len(&self) -> usize {
         self.pdu_length
     }
 
-    /// Returns `true` if PDU data is empty.
+    /// Returns `true` if the PDU data is empty.
+    ///
+    /// # Returns
+    ///
+    /// `true` if the PDU data is empty, `false` otherwise.
     #[inline]
     pub fn is_empty(&self) -> bool {
         self.pdu_length == 0

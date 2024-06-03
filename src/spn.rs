@@ -43,6 +43,34 @@ impl TimeDate {
             0xff, // TODO: Add timezone
         ]
     }
+
+    #[cfg(feature = "chrono")]
+    pub fn as_date_time(&self) -> chrono::LocalResult<chrono::DateTime<chrono::Utc>> {
+        use chrono::TimeZone;
+
+        chrono::Utc.with_ymd_and_hms(
+            self.year,
+            self.month,
+            self.day,
+            self.hour,
+            self.minute,
+            self.second,
+        )
+    }
+
+    #[cfg(feature = "chrono")]
+    pub fn from_date_time(dt: chrono::DateTime<chrono::Utc>) -> Self {
+        use chrono::prelude::*;
+
+        Self {
+            year: dt.year(),
+            month: dt.month(),
+            day: dt.day(),
+            hour: dt.hour(),
+            minute: dt.minute(),
+            second: dt.second(),
+        }
+    }
 }
 
 //

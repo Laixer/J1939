@@ -17,3 +17,9 @@ keywords = [
 ]
 license = "GPL-3.0"
 
+[features]
+default = ["chrono"]
+chrono = ["dep:chrono"]
+
+[dependencies]
+chrono = { version = "0.4.38", default-features = false, optional = true }

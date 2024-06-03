@@ -59,7 +59,7 @@ impl TimeDate {
     }
 
     #[cfg(feature = "chrono")]
-    pub fn from_date_time(dt: chrono::DateTime<chrono::Utc>) -> Self {
+    pub fn from_date_time(dt: &chrono::DateTime<chrono::Utc>) -> Self {
         use chrono::prelude::*;
 
         Self {
